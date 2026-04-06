@@ -15,8 +15,9 @@ jobs:
             -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/" \
             -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
             -H "Content-Type: application/json")
-          if [ "$response" -ne 200 ]; then
-            echo "Ping failed with status: $response"
+          echo "Response: HTTP $response"
+          if [ "$response" -eq 000 ]; then
+            echo "Connection failed - could not reach Supabase"
             exit 1
           fi
-          echo "Ping successful (HTTP $response)"
+          echo "Ping successful - project is alive"
