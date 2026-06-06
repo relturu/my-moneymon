@@ -14,10 +14,11 @@ jobs:
           response=$(curl -s -o /dev/null -w "%{http_code}" \
             -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/" \
             -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -H "Content-Type: application/json")
+            -H "Content-Type: application/json" \
+            || echo "000")
           echo "Response: HTTP $response"
-          if [ "$response" -eq 000 ]; then
-            echo "Connection failed - could not reach Supabase"
+          if [ "$response" -lt 200 ] || [ "$response" -ge 300 ]; then
+            echo "Connection failed - could not reach Supabase (HTTP $response)"
             exit 1
           fi
           echo "Ping successful - project is alive"
