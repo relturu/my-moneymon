@@ -12,7 +12,7 @@ jobs:
       - name: Ping Supabase
         run: |
           response=$(curl -s -o /dev/null -w "%{http_code}" \
-            -X GET "${{ secrets.SUPABASE_URL }}/auth/v1/health" \
+            -X GET "https://ivdaybeswzlddcyblkot.supabase.co/auth/v1/health" \
             || echo "000")
           echo "Response: HTTP $response"
           if [ "$response" -lt 200 ] || [ "$response" -ge 300 ]; then
