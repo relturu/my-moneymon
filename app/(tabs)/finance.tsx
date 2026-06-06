@@ -5,12 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  FlatList,
   Modal,
   TextInput,
   Pressable,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
@@ -24,6 +24,34 @@ import type { Transaction, Budget, Category } from '@/types/database';
 type BudgetWithCategory = Budget & { category: Category | null };
 type SubTab = 'overview' | 'transactions' | 'budgets';
 
+function formatMonthKey(key: string): string {
+  const [year, month] = key.split('-');
+  return new Date(parseInt(year), parseInt(month) - 1, 1)
+    .toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+}
+
+function groupByMonth(txns: Transaction[]): { month: string; label: string; items: Transaction[] }[] {
+  const map = new Map<string, Transaction[]>();
+  for (const t of txns) {
+    const key = t.posted_date ? t.posted_date.slice(0, 7) : 'Unknown';
+    if (!map.has(key)) map.set(key, []);
+    map.get(key)!.push(t);
+  }
+  return Array.from(map.keys())
+    .sort()
+    .reverse()
+    .map((k) => ({
+      month: k,
+      label: k === 'Unknown' ? 'Unknown' : formatMonthKey(k),
+      items: map.get(k)!,
+    }));
+}
+
+function formatAmount(raw: string): string {
+  const n = parseFloat(raw);
+  return isNaN(n) ? raw : n.toFixed(2);
+}
+
 export default function FinanceScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
@@ -35,8 +63,9 @@ export default function FinanceScreen() {
   const [coinBalance, setCoinBalance] = useState(0);
   const [userName, setUserName] = useState('');
 
-  // Add transaction modal
+  // Add/edit transaction modal
   const [txnModal, setTxnModal] = useState(false);
+  const [editingTxn, setEditingTxn] = useState<Transaction | null>(null);
   const [txnName, setTxnName] = useState('');
   const [txnAmount, setTxnAmount] = useState('');
   const [txnType, setTxnType] = useState<'expense' | 'income'>('expense');
@@ -44,8 +73,9 @@ export default function FinanceScreen() {
   const [txnCategoryExpanded, setTxnCategoryExpanded] = useState(false);
   const [savingTxn, setSavingTxn] = useState(false);
 
-  // Add budget modal
+  // Add/edit budget modal
   const [budgetModal, setBudgetModal] = useState(false);
+  const [editingBudget, setEditingBudget] = useState<BudgetWithCategory | null>(null);
   const [budgetCategoryId, setBudgetCategoryId] = useState<string | null>(null);
   const [budgetLimit, setBudgetLimit] = useState('');
   const [budgetDuration, setBudgetDuration] = useState<'monthly' | 'weekly'>('monthly');
@@ -84,14 +114,47 @@ export default function FinanceScreen() {
     setCategories((cats as Category[] | null) ?? []);
   }
 
+  function openAddTxn() {
+    setEditingTxn(null);
+    setTxnName(''); setTxnAmount(''); setTxnType('expense'); setTxnCategoryId(null);
+    setTxnModal(true);
+  }
+
+  function openEditTxn(t: Transaction) {
+    setEditingTxn(t);
+    setTxnName(t.merchant_name ?? '');
+    setTxnAmount(Math.abs(Number(t.amount)).toFixed(2));
+    setTxnType(t.transaction_type);
+    setTxnCategoryId(t.category_id);
+    setTxnCategoryExpanded(false);
+    setTxnModal(true);
+  }
+
   function closeTxnModal() {
     setTxnModal(false);
     setTxnCategoryExpanded(false);
+    setEditingTxn(null);
+  }
+
+  function openAddBudget() {
+    setEditingBudget(null);
+    setBudgetCategoryId(null); setBudgetLimit(''); setBudgetDuration('monthly');
+    setBudgetModal(true);
+  }
+
+  function openEditBudget(b: BudgetWithCategory) {
+    setEditingBudget(b);
+    setBudgetCategoryId(b.category_id);
+    setBudgetLimit(Number(b.amount_limit).toFixed(2));
+    setBudgetDuration((b.duration_type as 'monthly' | 'weekly') ?? 'monthly');
+    setBudgetCategoryExpanded(false);
+    setBudgetModal(true);
   }
 
   function closeBudgetModal() {
     setBudgetModal(false);
     setBudgetCategoryExpanded(false);
+    setEditingBudget(null);
   }
 
   async function saveTransaction() {
@@ -100,19 +163,45 @@ export default function FinanceScreen() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setSavingTxn(false); return; }
 
-    await (supabase as any).from('transactions').insert({
-      user_id: user.id,
-      merchant_name: txnName.trim(),
-      amount: parseFloat(txnAmount),
-      transaction_type: txnType,
-      category_id: txnCategoryId ?? null,
-      posted_date: new Date().toISOString().split('T')[0],
-    });
+    if (editingTxn) {
+      await (supabase as any).from('transactions').update({
+        merchant_name: txnName.trim(),
+        amount: parseFloat(txnAmount),
+        transaction_type: txnType,
+        category_id: txnCategoryId ?? null,
+      }).eq('id', editingTxn.id);
+    } else {
+      await (supabase as any).from('transactions').insert({
+        user_id: user.id,
+        merchant_name: txnName.trim(),
+        amount: parseFloat(txnAmount),
+        transaction_type: txnType,
+        category_id: txnCategoryId ?? null,
+        posted_date: new Date().toISOString().split('T')[0],
+      });
+    }
 
-    setTxnName(''); setTxnAmount(''); setTxnType('expense'); setTxnCategoryId(null);
     setSavingTxn(false);
     closeTxnModal();
     await load();
+  }
+
+  function confirmDeleteTxn(t: Transaction) {
+    Alert.alert(
+      'Delete Transaction',
+      `Delete "${t.merchant_name ?? 'this transaction'}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            await (supabase as any).from('transactions').delete().eq('id', t.id);
+            await load();
+          },
+        },
+      ]
+    );
   }
 
   async function saveBudget() {
@@ -121,25 +210,59 @@ export default function FinanceScreen() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setSavingBudget(false); return; }
 
-    await (supabase as any).from('budgets').insert({
-      user_id: user.id,
-      category_id: budgetCategoryId ?? null,
-      amount_limit: parseFloat(budgetLimit),
-      duration_type: budgetDuration,
-      is_active: true,
-    });
+    if (editingBudget) {
+      await (supabase as any).from('budgets').update({
+        category_id: budgetCategoryId ?? null,
+        amount_limit: parseFloat(budgetLimit),
+        duration_type: budgetDuration,
+      }).eq('id', editingBudget.id);
+    } else {
+      await (supabase as any).from('budgets').insert({
+        user_id: user.id,
+        category_id: budgetCategoryId ?? null,
+        amount_limit: parseFloat(budgetLimit),
+        duration_type: budgetDuration,
+        is_active: true,
+      });
+    }
 
-    setBudgetCategoryId(null); setBudgetLimit(''); setBudgetDuration('monthly');
     setSavingBudget(false);
     closeBudgetModal();
     await load();
+  }
+
+  function confirmDeleteBudget(b: BudgetWithCategory) {
+    Alert.alert(
+      'Delete Budget',
+      `Delete budget for "${b.category?.name ?? 'All categories'}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            await (supabase as any).from('budgets').delete().eq('id', b.id);
+            await load();
+          },
+        },
+      ]
+    );
   }
 
   const income = transactions.filter((t) => t.transaction_type === 'income')
     .reduce((s, t) => s + Number(t.amount), 0);
   const expenses = transactions.filter((t) => t.transaction_type === 'expense')
     .reduce((s, t) => s + Number(t.amount), 0);
+  const net = income - expenses;
 
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  const recentTxns = transactions.filter((t) => {
+    if (!t.posted_date) return false;
+    return new Date(t.posted_date) >= oneWeekAgo;
+  });
+
+  const txnGroups = groupByMonth(transactions);
   const selectedTxnCategory = categories.find((c) => c.id === txnCategoryId);
   const selectedBudgetCategory = categories.find((c) => c.id === budgetCategoryId);
 
@@ -187,24 +310,31 @@ export default function FinanceScreen() {
           </View>
           <View style={[styles.netCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.netLabel, { color: colors.icon }]}>Net</Text>
-            <Text style={[styles.netAmount, { color: (income - expenses) >= 0 ? colors.income : colors.expense }]}>
-              {(income - expenses) >= 0 ? '+' : ''}${(income - expenses).toFixed(2)}
+            <Text style={[styles.netAmount, { color: net >= 0 ? colors.income : colors.expense }]}>
+              {net >= 0 ? '+' : '-'}${Math.abs(net).toFixed(2)}
             </Text>
           </View>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent</Text>
             <TouchableOpacity
               style={[styles.addBtn, { backgroundColor: colors.tint }]}
-              onPress={() => setTxnModal(true)}>
+              onPress={openAddTxn}>
               <IconSymbol size={14} name="plus" color="#fff" />
               <Text style={styles.addBtnText}>Add</Text>
             </TouchableOpacity>
           </View>
-          {transactions.slice(0, 5).map((t) => (
-            <TxnRow key={t.id} item={t} colors={colors} />
-          ))}
-          {transactions.length === 0 && (
-            <Text style={[styles.emptyText, { color: colors.icon }]}>No transactions yet</Text>
+          {recentTxns.length === 0 ? (
+            <Text style={[styles.emptyText, { color: colors.icon }]}>No transactions in the last week</Text>
+          ) : (
+            recentTxns.map((t) => (
+              <TxnRow
+                key={t.id}
+                item={t}
+                colors={colors}
+                onEdit={() => openEditTxn(t)}
+                onDelete={() => confirmDeleteTxn(t)}
+              />
+            ))
           )}
         </ScrollView>
       )}
@@ -215,20 +345,31 @@ export default function FinanceScreen() {
           <View style={styles.listHeader}>
             <TouchableOpacity
               style={[styles.addBtn, { backgroundColor: colors.tint }]}
-              onPress={() => setTxnModal(true)}>
+              onPress={openAddTxn}>
               <IconSymbol size={14} name="plus" color="#fff" />
               <Text style={styles.addBtnText}>Add</Text>
             </TouchableOpacity>
           </View>
-          <FlatList
-            data={transactions}
-            keyExtractor={(t) => t.id}
-            contentContainerStyle={[styles.content, transactions.length === 0 && styles.centerContent]}
-            ListEmptyComponent={
+          <ScrollView contentContainerStyle={[styles.content, txnGroups.length === 0 && styles.centerContent]}>
+            {txnGroups.length === 0 ? (
               <Text style={[styles.emptyText, { color: colors.icon }]}>No transactions yet</Text>
-            }
-            renderItem={({ item }) => <TxnRow item={item} colors={colors} />}
-          />
+            ) : (
+              txnGroups.map((group) => (
+                <View key={group.month} style={styles.monthGroup}>
+                  <Text style={[styles.monthLabel, { color: colors.icon }]}>{group.label}</Text>
+                  {group.items.map((t) => (
+                    <TxnRow
+                      key={t.id}
+                      item={t}
+                      colors={colors}
+                      onEdit={() => openEditTxn(t)}
+                      onDelete={() => confirmDeleteTxn(t)}
+                    />
+                  ))}
+                </View>
+              ))
+            )}
+          </ScrollView>
         </>
       )}
 
@@ -238,7 +379,7 @@ export default function FinanceScreen() {
           <View style={styles.listHeader}>
             <TouchableOpacity
               style={[styles.addBtn, { backgroundColor: colors.tint }]}
-              onPress={() => setBudgetModal(true)}>
+              onPress={openAddBudget}>
               <IconSymbol size={14} name="plus" color="#fff" />
               <Text style={styles.addBtnText}>Add</Text>
             </TouchableOpacity>
@@ -256,9 +397,17 @@ export default function FinanceScreen() {
                         {b.category?.name ?? 'All categories'}
                       </Text>
                     </View>
-                    <Text style={[styles.budgetLimit, { color: colors.tint }]}>
-                      ${Number(b.amount_limit).toFixed(2)}
-                    </Text>
+                    <View style={styles.budgetRight}>
+                      <Text style={[styles.budgetLimit, { color: colors.tint }]}>
+                        ${Number(b.amount_limit).toFixed(2)}
+                      </Text>
+                      <TouchableOpacity onPress={() => openEditBudget(b)} style={styles.iconBtn}>
+                        <IconSymbol size={16} name="pencil" color={colors.icon} />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => confirmDeleteBudget(b)} style={styles.iconBtn}>
+                        <IconSymbol size={16} name="trash" color={colors.expense} />
+                      </TouchableOpacity>
+                    </View>
                   </View>
                   <Text style={[styles.budgetDuration, { color: colors.icon }]}>
                     {b.duration_type ?? 'Monthly'}
@@ -270,7 +419,7 @@ export default function FinanceScreen() {
         </>
       )}
 
-      {/* ── Add Transaction Modal ── */}
+      {/* ── Add/Edit Transaction Modal ── */}
       <Modal visible={txnModal} transparent animationType="slide" onRequestClose={closeTxnModal}>
         <KeyboardAvoidingView
           style={styles.kav}
@@ -278,14 +427,15 @@ export default function FinanceScreen() {
           <Pressable style={StyleSheet.absoluteFill} onPress={closeTxnModal} />
           <View style={[styles.sheet, { backgroundColor: colors.card }]}>
             <View style={[styles.handle, { backgroundColor: colors.border }]} />
-            <Text style={[styles.sheetTitle, { color: colors.text }]}>Add Transaction</Text>
+            <Text style={[styles.sheetTitle, { color: colors.text }]}>
+              {editingTxn ? 'Edit Transaction' : 'Add Transaction'}
+            </Text>
 
             <ScrollView
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.sheetBody}>
 
-              {/* Type toggle */}
               <View style={[styles.typeToggle, { backgroundColor: colors.background, borderColor: colors.border }]}>
                 {(['expense', 'income'] as const).map((type) => (
                   <TouchableOpacity
@@ -294,9 +444,7 @@ export default function FinanceScreen() {
                       backgroundColor: type === 'income' ? colors.income : colors.expense,
                     }]}
                     onPress={() => setTxnType(type)}>
-                    <Text style={[styles.typeBtnText, {
-                      color: txnType === type ? '#fff' : colors.icon,
-                    }]}>
+                    <Text style={[styles.typeBtnText, { color: txnType === type ? '#fff' : colors.icon }]}>
                       {type === 'income' ? '+ Income' : '− Expense'}
                     </Text>
                   </TouchableOpacity>
@@ -311,16 +459,19 @@ export default function FinanceScreen() {
                 onChangeText={setTxnName}
               />
 
-              <TextInput
-                style={[styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: colors.background }]}
-                placeholder="Amount"
-                placeholderTextColor={colors.icon}
-                value={txnAmount}
-                onChangeText={setTxnAmount}
-                keyboardType="decimal-pad"
-              />
+              <View style={[styles.amountRow, { borderColor: colors.border, backgroundColor: colors.background }]}>
+                <Text style={[styles.currencySymbol, { color: colors.text }]}>$</Text>
+                <TextInput
+                  style={[styles.amountInput, { color: colors.text }]}
+                  placeholder="0.00"
+                  placeholderTextColor={colors.icon}
+                  value={txnAmount}
+                  onChangeText={setTxnAmount}
+                  onBlur={() => setTxnAmount((v) => formatAmount(v))}
+                  keyboardType="decimal-pad"
+                />
+              </View>
 
-              {/* Inline category picker */}
               <TouchableOpacity
                 style={[styles.picker, { borderColor: colors.border, backgroundColor: colors.background }]}
                 onPress={() => setTxnCategoryExpanded(!txnCategoryExpanded)}>
@@ -368,7 +519,7 @@ export default function FinanceScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* ── Add Budget Modal ── */}
+      {/* ── Add/Edit Budget Modal ── */}
       <Modal visible={budgetModal} transparent animationType="slide" onRequestClose={closeBudgetModal}>
         <KeyboardAvoidingView
           style={styles.kav}
@@ -376,14 +527,15 @@ export default function FinanceScreen() {
           <Pressable style={StyleSheet.absoluteFill} onPress={closeBudgetModal} />
           <View style={[styles.sheet, { backgroundColor: colors.card }]}>
             <View style={[styles.handle, { backgroundColor: colors.border }]} />
-            <Text style={[styles.sheetTitle, { color: colors.text }]}>Set Budget</Text>
+            <Text style={[styles.sheetTitle, { color: colors.text }]}>
+              {editingBudget ? 'Edit Budget' : 'Set Budget'}
+            </Text>
 
             <ScrollView
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.sheetBody}>
 
-              {/* Inline category picker */}
               <TouchableOpacity
                 style={[styles.picker, { borderColor: colors.border, backgroundColor: colors.background }]}
                 onPress={() => setBudgetCategoryExpanded(!budgetCategoryExpanded)}>
@@ -418,14 +570,18 @@ export default function FinanceScreen() {
                 </View>
               )}
 
-              <TextInput
-                style={[styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: colors.background }]}
-                placeholder="Spending limit (e.g. 200)"
-                placeholderTextColor={colors.icon}
-                value={budgetLimit}
-                onChangeText={setBudgetLimit}
-                keyboardType="decimal-pad"
-              />
+              <View style={[styles.amountRow, { borderColor: colors.border, backgroundColor: colors.background }]}>
+                <Text style={[styles.currencySymbol, { color: colors.text }]}>$</Text>
+                <TextInput
+                  style={[styles.amountInput, { color: colors.text }]}
+                  placeholder="0.00"
+                  placeholderTextColor={colors.icon}
+                  value={budgetLimit}
+                  onChangeText={setBudgetLimit}
+                  onBlur={() => setBudgetLimit((v) => formatAmount(v))}
+                  keyboardType="decimal-pad"
+                />
+              </View>
 
               <View style={[styles.typeToggle, { backgroundColor: colors.background, borderColor: colors.border }]}>
                 {(['monthly', 'weekly'] as const).map((d) => (
@@ -457,18 +613,36 @@ export default function FinanceScreen() {
   );
 }
 
-function TxnRow({ item, colors }: { item: Transaction; colors: any }) {
+function TxnRow({
+  item,
+  colors,
+  onEdit,
+  onDelete,
+}: {
+  item: Transaction;
+  colors: any;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
   return (
     <View style={[txnStyles.row, { backgroundColor: colors.card, borderColor: colors.border }]}>
-      <View>
+      <View style={txnStyles.left}>
         <Text style={[txnStyles.name, { color: colors.text }]}>{item.merchant_name ?? 'Transaction'}</Text>
         <Text style={[txnStyles.date, { color: colors.icon }]}>{item.posted_date ?? '—'}</Text>
       </View>
-      <Text style={[txnStyles.amount, {
-        color: item.transaction_type === 'income' ? colors.income : colors.expense,
-      }]}>
-        {item.transaction_type === 'income' ? '+' : '-'}${Math.abs(Number(item.amount)).toFixed(2)}
-      </Text>
+      <View style={txnStyles.right}>
+        <Text style={[txnStyles.amount, {
+          color: item.transaction_type === 'income' ? colors.income : colors.expense,
+        }]}>
+          {item.transaction_type === 'income' ? '+' : '-'}${Math.abs(Number(item.amount)).toFixed(2)}
+        </Text>
+        <TouchableOpacity onPress={onEdit} style={txnStyles.iconBtn}>
+          <IconSymbol size={15} name="pencil" color={colors.icon} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={onDelete} style={txnStyles.iconBtn}>
+          <IconSymbol size={15} name="trash" color={colors.expense} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -481,10 +655,14 @@ const txnStyles = StyleSheet.create({
     padding: 14,
     borderRadius: 12,
     borderWidth: 1,
+    marginBottom: 8,
   },
+  left: { flex: 1, marginRight: 8 },
+  right: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   name: { fontSize: 14, fontWeight: '500' },
   date: { fontSize: 12, marginTop: 2 },
-  amount: { fontSize: 15, fontWeight: '700' },
+  amount: { fontSize: 14, fontWeight: '700' },
+  iconBtn: { padding: 4 },
 });
 
 const styles = StyleSheet.create({
@@ -552,13 +730,18 @@ const styles = StyleSheet.create({
 
   emptyText: { fontSize: 15 },
 
+  monthGroup: { gap: 0 },
+  monthLabel: { fontSize: 13, fontWeight: '600', marginBottom: 8, marginTop: 4 },
+
   budgetCard: { borderRadius: 14, borderWidth: 1, padding: 14, gap: 6 },
   budgetRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  budgetLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  budgetLeft: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
+  budgetRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   budgetIcon: { fontSize: 20 },
   budgetName: { fontSize: 15, fontWeight: '600' },
-  budgetLimit: { fontSize: 18, fontWeight: '700' },
+  budgetLimit: { fontSize: 16, fontWeight: '700' },
   budgetDuration: { fontSize: 13 },
+  iconBtn: { padding: 6 },
 
   // Modal
   kav: { flex: 1, justifyContent: 'flex-end' },
@@ -591,6 +774,16 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     fontSize: 15,
   },
+  amountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+  },
+  currencySymbol: { fontSize: 15, marginRight: 4 },
+  amountInput: { flex: 1, paddingVertical: 14, fontSize: 15 },
+
   picker: {
     flexDirection: 'row',
     alignItems: 'center',
