@@ -8,6 +8,7 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { getDevTest, setDevTest } from '@/lib/dev-test';
+import { useNotifs } from '@/lib/notifications';
 import type { FairyDefinition, UserFairyCollection } from '@/types/database';
 
 type FairyEntry = FairyDefinition & {
@@ -28,9 +29,11 @@ export default function FairyLogScreen() {
 
   const [fairies, setFairies] = useState<FairyEntry[]>([]);
   const [coinBalance, setCoinBalance] = useState(0);
+  const { setFairyLog } = useNotifs();
 
   useFocusEffect(
     useCallback(() => {
+      setFairyLog(false); // clear dot when user opens fairy log
       load();
       return () => {
         // When leaving fairy-log after claiming: clean up visit + collection,

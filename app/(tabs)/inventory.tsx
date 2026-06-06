@@ -8,6 +8,7 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { getDevTest, clearDevTest } from '@/lib/dev-test';
+import { useNotifs } from '@/lib/notifications';
 import type { UserInventory, Material } from '@/types/database';
 
 type InventoryItem = UserInventory & { material: Material | null };
@@ -25,9 +26,11 @@ export default function InventoryScreen() {
 
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [coinBalance, setCoinBalance] = useState(0);
+  const { setInventory } = useNotifs();
 
   useFocusEffect(
     useCallback(() => {
+      setInventory(false); // clear dot when user opens inventory
       load();
       return () => {
         // Clean up test inventory item when user leaves the inventory tab

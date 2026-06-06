@@ -17,6 +17,7 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { getDevTest, setDevTest } from '@/lib/dev-test';
+import { useNotifs } from '@/lib/notifications';
 import type {
   User,
   FountainUpgrade,
@@ -66,6 +67,7 @@ export default function FountainScreen() {
   const [patting, setPatting] = useState(false);
   const [claiming, setClaiming] = useState(false);
   const [tick, setTick] = useState(0); // forces countdown re-render
+  const { setFountain, setInventory, setFairyLog } = useNotifs();
 
   // Re-render countdown every minute
   useEffect(() => {
@@ -150,6 +152,10 @@ export default function FountainScreen() {
       mailboxList.push({ ...visit, fairy, material });
     }
     setMailboxVisits(mailboxList);
+
+    // Fountain dot: show when a fairy is visiting OR mailbox has uncollected items
+    const hasFairy = !!(activeList && activeList.length > 0);
+    setFountain(hasFairy || mailboxList.length > 0);
   }
 
   async function claimMailbox() {
@@ -161,6 +167,7 @@ export default function FountainScreen() {
 
     const drops: string[] = [];
     let totalXp = 0;
+    let newFairyDiscovered = false;
 
     for (const visit of mailboxVisits) {
       const wasInteracted = !!visit.interacted_at;
@@ -206,6 +213,7 @@ export default function FountainScreen() {
           .update({ total_visits: (colExisting as any).total_visits + 1 })
           .eq('id', (colExisting as any).id);
       } else {
+        newFairyDiscovered = true;
         await db.from('user_fairy_collection').insert({
           user_id: authUser.id,
           fairy_id: visit.fairy_id,
@@ -252,6 +260,10 @@ export default function FountainScreen() {
     if (dt.active && !dt.claimed && mailboxVisits.some((v) => v.id === dt.visitId)) {
       setDevTest({ claimed: true });
     }
+
+    // Notify other tabs: inventory always gets new items, fairy log if new discovery
+    if (drops.length > 0) setInventory(true);
+    if (newFairyDiscovered) setFairyLog(true);
 
     setClaiming(false);
     await load();

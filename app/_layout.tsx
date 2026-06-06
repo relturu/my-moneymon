@@ -7,6 +7,7 @@ import type { Session } from '@supabase/supabase-js';
 
 import { supabase } from '@/lib/supabase';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { NotifProvider } from '@/lib/notifications';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -43,15 +44,17 @@ export default function RootLayout() {
   }, [session, loading, segments]);
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="toss" options={{ headerShown: false, presentation: 'card' }} />
-        <Stack.Screen name="quests" options={{ headerShown: false, presentation: 'card' }} />
-        <Stack.Screen name="fairy-log-detail" options={{ headerShown: false, presentation: 'card' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <NotifProvider>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="toss" options={{ headerShown: false, presentation: 'card' }} />
+          <Stack.Screen name="quests" options={{ headerShown: false, presentation: 'card' }} />
+          <Stack.Screen name="fairy-log-detail" options={{ headerShown: false, presentation: 'card' }} />
+        </Stack>
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </NotifProvider>
   );
 }
