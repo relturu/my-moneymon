@@ -78,22 +78,23 @@ export default function FairyLogDetailScreen() {
 
     setFairy({ ...f, collection, dropMaterial });
 
-    // Load all fairy IDs for navigation
-    const { data: allFairies } = await supabase
-      .from('fairy_definitions')
-      .select('id')
-      .order('rarity', { ascending: true });
+    // Only navigate between DISCOVERED fairies
+    if (user) {
+      const { data: discoveredCol } = await supabase
+        .from('user_fairy_collection')
+        .select('fairy_id')
+        .eq('user_id', user.id);
 
-    const ids = (allFairies as { id: string }[] | null ?? []).map((f) => f.id);
-    setAllFairyIds(ids);
-    setCurrentIndex(ids.indexOf(fairyId));
+      const ids = (discoveredCol as { fairy_id: string }[] | null ?? []).map((c) => c.fairy_id);
+      setAllFairyIds(ids);
+      setCurrentIndex(ids.indexOf(fairyId));
+    }
   }
 
+  // Load in-place — no navigation, so no animation direction issue
   function navigateTo(index: number) {
     const newId = allFairyIds[index];
-    if (newId) {
-      router.replace({ pathname: '/fairy-log-detail' as any, params: { id: newId } });
-    }
+    if (newId) loadFairy(newId);
   }
 
   if (!fairy) {

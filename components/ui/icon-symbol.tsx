@@ -14,6 +14,7 @@ const MAPPING = {
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
   'chevron.down': 'expand-more',
+  'chevron.up': 'expand-less',
   // tabs
   'sparkles': 'auto-awesome',
   'creditcard.fill': 'credit-card',

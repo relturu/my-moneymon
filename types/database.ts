@@ -358,6 +358,7 @@ export interface Database {
           departs_at: string | null;
           is_active: boolean;
           interacted_at: string | null;
+          materials_claimed: boolean;
         };
         Insert: {
           id?: string;
@@ -368,6 +369,7 @@ export interface Database {
           departs_at?: string | null;
           is_active?: boolean;
           interacted_at?: string | null;
+          materials_claimed?: boolean;
         };
         Update: {
           id?: string;
@@ -378,6 +380,7 @@ export interface Database {
           departs_at?: string | null;
           is_active?: boolean;
           interacted_at?: string | null;
+          materials_claimed?: boolean;
         };
       };
 

@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { getDevTest, setDevTest } from '@/lib/dev-test';
 import type { FairyDefinition, UserFairyCollection } from '@/types/database';
 
 type FairyEntry = FairyDefinition & {
@@ -31,8 +32,38 @@ export default function FairyLogScreen() {
   useFocusEffect(
     useCallback(() => {
       load();
+      return () => {
+        // When leaving fairy-log after claiming: clean up visit + collection,
+        // then hand inventory cleanup off to the inventory tab.
+        const dt = { ...getDevTest() };
+        if (dt.active && dt.claimed) {
+          // Signal inventory tab to clean up on its next unfocus
+          setDevTest({ active: false, claimed: false, inventoryPendingCleanup: !!dt.materialId });
+          runFairyLogCleanup(dt);
+        }
+      };
     }, [])
   );
+
+  async function runFairyLogCleanup(dt: ReturnType<typeof getDevTest>) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || !dt.visitId) return;
+    const db = supabase as any;
+
+    // Remove test fountain_visit
+    await db.from('fountain_visits').delete().eq('id', dt.visitId);
+
+    // Remove collection entry only if it was created after the test started
+    if (dt.fairyId && dt.startedAt) {
+      const { data: col } = await supabase
+        .from('user_fairy_collection').select('id')
+        .eq('user_id', user.id).eq('fairy_id', dt.fairyId)
+        .gte('discovered_at', dt.startedAt).single();
+      if (col) {
+        await db.from('user_fairy_collection').delete().eq('id', (col as any).id);
+      }
+    }
+  }
 
   async function load() {
     const { data: { user } } = await supabase.auth.getUser();

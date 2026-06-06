@@ -99,16 +99,18 @@ export default function TossScreen() {
 
     const fairy = fairies[Math.floor(Math.random() * fairies.length)];
     const now = new Date();
-    const departsAt = new Date(now.getTime() + fairy.visit_duration_hours * 60 * 60 * 1000).toISOString();
+    const visitHours = Math.floor(Math.random() * 6) + 1; // 1–6 hours
+    const departsAt = new Date(now.getTime() + visitHours * 60 * 60 * 1000).toISOString();
 
-    await supabase.from('fountain_visits').insert({
+    await (supabase.from('fountain_visits').insert({
       user_id: authUser.id,
       fairy_id: fairy.id,
       coins_spent: amount,
       arrived_at: now.toISOString(),
       departs_at: departsAt,
       is_active: true,
-    } as any);
+      materials_claimed: false,
+    }) as any);
 
     const newBalance = user.coin_balance - amount;
     await (supabase

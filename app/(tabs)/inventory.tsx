@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { getDevTest, clearDevTest } from '@/lib/dev-test';
 import type { UserInventory, Material } from '@/types/database';
 
 type InventoryItem = UserInventory & { material: Material | null };
@@ -28,8 +29,34 @@ export default function InventoryScreen() {
   useFocusEffect(
     useCallback(() => {
       load();
+      return () => {
+        // Clean up test inventory item when user leaves the inventory tab
+        const dt = { ...getDevTest() };
+        if (dt.inventoryPendingCleanup && dt.materialId) {
+          clearDevTest();
+          runInventoryCleanup(dt.materialId);
+        }
+      };
     }, [])
   );
+
+  async function runInventoryCleanup(materialId: string) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const db = supabase as any;
+
+    const { data: inv } = await supabase
+      .from('user_inventory').select('id, quantity')
+      .eq('user_id', user.id).eq('material_id', materialId).single();
+    if (!inv) return;
+
+    const qty = (inv as any).quantity as number;
+    if (qty <= 1) {
+      await db.from('user_inventory').delete().eq('id', (inv as any).id);
+    } else {
+      await db.from('user_inventory').update({ quantity: qty - 1 }).eq('id', (inv as any).id);
+    }
+  }
 
   async function load() {
     const { data: { user } } = await supabase.auth.getUser();
