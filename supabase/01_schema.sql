@@ -23,7 +23,7 @@ CREATE TABLE users (
   created_at timestamptz DEFAULT now(),
   user_name text,
   email text,
-  coin_balance int8 DEFAULT 0,
+  coin_balance int8 DEFAULT 100,
   fountain_xp int8 DEFAULT 0,
   fountain_level int8 DEFAULT 1,
   avatar_url text

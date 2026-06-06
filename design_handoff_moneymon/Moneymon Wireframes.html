@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Moneymon — Lo-fi Wireframes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Kalam:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #fbfaf6;
+    --frame: #ffffff;
+    --ink: #2c2b28;
+    --ink-soft: #6f6d66;
+    --line: #2c2b28;
+    --accent: #f3df8e;       /* highlighter glow */
+    --accent-strong: #ecd25f;
+    --rough: 255px 14px 225px 16px / 16px 220px 14px 255px;
+    --rough2: 18px 200px 22px 190px / 190px 20px 200px 18px;
+    --pen: 2.4px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(0,0,0,0.035) 1px, transparent 0);
+    background-size: 22px 22px;
+    color: var(--ink);
+    font-family: 'Kalam', cursive;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- page chrome ---------- */
+  .page-head {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 44px 32px 8px;
+  }
+  .page-head h1 {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 40px;
+    margin: 0;
+    letter-spacing: 0.5px;
+  }
+  .page-head .sub {
+    font-size: 17px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+    max-width: 640px;
+  }
+
+  .tweaks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px 26px;
+    align-items: center;
+    margin-top: 18px;
+    padding: 12px 18px;
+    border: var(--pen) solid var(--line);
+    border-radius: var(--rough2);
+    background: var(--frame);
+    width: fit-content;
+  }
+  .tweaks .grp { display: flex; align-items: center; gap: 10px; }
+  .tweaks .lbl { font-family: 'Patrick Hand', cursive; font-size: 18px; white-space: nowrap; }
+  .swatch {
+    width: 26px; height: 26px; border: 2px solid var(--line);
+    border-radius: 50% 48% 52% 50%; cursor: pointer; padding: 0;
+    transition: transform .12s ease;
+  }
+  .swatch[aria-pressed="true"] { transform: scale(1.18); box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--line); }
+  .tweaks button.opt {
+    font-family: 'Patrick Hand', cursive; font-size: 17px;
+    background: var(--frame); border: 2px solid var(--line);
+    border-radius: 12px 6px 14px 6px; padding: 4px 12px; cursor: pointer;
+  }
+  .tweaks button.opt[aria-pressed="true"] { background: var(--accent); }
+
+  /* ---------- gallery ---------- */
+  .gallery { max-width: 1180px; margin: 0 auto; padding: 14px 32px 90px; }
+  .section-title {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 24px;
+    margin: 38px 0 4px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-title::after { content: ""; flex: 1; height: 0; border-top: 2px dashed #cdcbc2; }
+  .row {
+    display: flex; flex-wrap: wrap; gap: 34px 30px;
+    padding-top: 22px;
+  }
+
+  .device { width: 300px; }
+  .caption {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 19px; margin-top: 12px;
+  }
+  .caption small { display: block; font-family: 'Kalam', cursive; font-size: 14px; color: var(--ink-soft); }
+
+  /* ---------- phone ---------- */
+  .phone {
+    position: relative;
+    width: 300px; height: 620px;
+    background: var(--frame);
+    border: 3px solid var(--line);
+    border-radius: 36px;
+    padding: 14px 12px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    box-shadow: 6px 8px 0 rgba(44,43,40,0.08);
+  }
+  .screen { flex: 1; display: flex; flex-direction: column; position: relative; min-height: 0; }
+
+  /* top bar */
+  .topbar {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 8px; padding: 4px 4px 0; min-height: 44px;
+  }
+  .topbar .slot-left { display: flex; align-items: center; gap: 8px; }
+  .coin {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: 'Patrick Hand', cursive; font-size: 26px;
+  }
+  .coin svg { width: 30px; height: 30px; }
+
+  .icon-btn {
+    display: inline-flex; flex-direction: column; align-items: center; gap: 2px;
+    background: none; border: none; cursor: pointer; font: inherit; color: inherit;
+  }
+  .icon-btn .glyph {
+    width: 42px; height: 42px; display: grid; place-items: center;
+  }
+  .icon-btn .glyph svg { width: 34px; height: 34px; }
+  .icon-btn .cap { font-family: 'Patrick Hand', cursive; font-size: 15px; line-height: 1; }
+
+  .back-btn {
+    width: 46px; height: 34px; border: var(--pen) solid var(--line);
+    border-radius: 12px 6px 14px 6px; display: grid; place-items: center; background: var(--frame);
+  }
+  .back-btn svg { width: 22px; height: 22px; }
+  .screen-title { font-family: 'Patrick Hand', cursive; font-size: 23px; white-space: nowrap; }
+
+  .body { flex: 1; min-height: 0; position: relative; padding: 4px; }
+
+  /* bottom nav */
+  .nav {
+    display: flex; justify-content: space-around; align-items: flex-end;
+    padding: 8px 2px 2px; border-top: 2px solid #e6e4da;
+  }
+  .nav .icon-btn .glyph { width: 36px; height: 36px; }
+  .nav .icon-btn .glyph svg { width: 30px; height: 30px; }
+  .nav .icon-btn .cap { font-size: 14px; }
+  .nav .active .glyph {
+    border: var(--pen) solid var(--line); border-radius: 14px 8px 16px 8px; background: var(--accent);
+  }
+  .nav .active .cap { font-weight: 700; }
+
+  /* ---------- fountain ---------- */
+  .fountain { display: flex; flex-direction: column; align-items: center; width: 240px; max-width: 100%; }
+  .tier {
+    border: var(--pen) solid var(--line);
+    background: var(--frame);
+    border-radius: 8px 6px 10px 6px;
+  }
+  .tier.t1 { width: 42%; height: 52px; border-bottom: none; border-radius: 8px 8px 0 0; }
+  .tier.t2 { width: 70%; height: 72px; border-bottom: none; border-radius: 6px 6px 0 0; }
+  .tier.t3 { width: 96%; height: 96px; border-radius: 4px 4px 12px 12px; }
+  .glow .tier { box-shadow: 0 0 0 7px var(--accent); }
+  .glow .tier.t3 { box-shadow: 0 0 0 7px var(--accent), 0 0 22px 10px rgba(243,223,142,.5); }
+  .level-tag { font-family: 'Patrick Hand', cursive; font-size: 30px; margin-top: 26px; }
+
+  /* generic sketch box / button */
+  .sbtn {
+    font-family: 'Patrick Hand', cursive; font-size: 21px;
+    border: var(--pen) solid var(--line); background: var(--frame);
+    border-radius: 16px 8px 18px 8px; padding: 9px 16px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px; color: inherit;
+  }
+  .sbtn.primary { background: var(--accent); }
+  .sbtn.full { width: 100%; justify-content: center; }
+  .sbox {
+    border: var(--pen) solid var(--line); border-radius: var(--rough2); background: var(--frame);
+  }
+
+  .center-actions { position: absolute; left: 0; right: 0; bottom: 6px; display: flex; gap: 14px; justify-content: center; }
+
+  /* ---------- quests ---------- */
+  .quest-card {
+    display: flex; align-items: center; gap: 14px;
+    border: var(--pen) solid var(--line); border-radius: 16px 8px 18px 8px;
+    padding: 12px; margin-bottom: 14px; background: var(--frame);
+  }
+  .quest-reward { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 48px; }
+  .reward-coin { width: 42px; height: 42px; border: var(--pen) solid var(--line); border-radius: 50%; display: grid; place-items: center; }
+  .reward-coin svg { width: 24px; height: 24px; }
+  .reward-num { font-family: 'Patrick Hand', cursive; font-size: 19px; }
+  .quest-task { font-size: 19px; line-height: 1.15; flex: 1; }
+  .quest-card.done { background: #f4f3ec; }
+  .quest-card.done .quest-task { color: var(--ink-soft); text-decoration: line-through; }
+  .quest-card.done .reward-coin { background: var(--accent); }
+
+  .tabbar { display: flex; border-top: 2px solid #e6e4da; padding-top: 8px; gap: 8px; }
+  .tab { flex: 1; text-align: center; font-family: 'Patrick Hand', cursive; font-size: 22px; padding: 6px; border-radius: 12px 6px 14px 6px; }
+  .tab.active { border: var(--pen) solid var(--line); background: var(--accent); }
+
+  /* ---------- toss ---------- */
+  .stepper { display: flex; align-items: center; gap: 10px; justify-content: center; }
+  .step-btn { width: 40px; height: 40px; border: var(--pen) solid var(--line); border-radius: 12px 6px 14px 6px; background: var(--frame); font-family:'Patrick Hand',cursive; font-size: 26px; line-height: 1; cursor: pointer; }
+  .step-val { display: inline-flex; align-items: center; gap: 6px; font-family: 'Patrick Hand', cursive; font-size: 30px; }
+  .slider-track { height: 12px; border: var(--pen) solid var(--line); border-radius: 20px; position: relative; margin: 10px 6px; background: repeating-linear-gradient(90deg, transparent 0 9px, #e9e7dd 9px 11px); }
+  .slider-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 38%; background: var(--accent); border-radius: 20px 0 0 20px; }
+  .slider-knob { position: absolute; left: 38%; top: 50%; width: 26px; height: 26px; transform: translate(-50%,-50%); background: var(--frame); border: var(--pen) solid var(--line); border-radius: 50%; }
+  .odds { display: flex; flex-direction: column; gap: 7px; }
+  .odd-row { display: flex; align-items: center; gap: 8px; font-size: 16px; }
+  .odd-stars { font-family: 'Patrick Hand', cursive; min-width: 58px; }
+  .odd-bar { flex: 1; height: 12px; border: 1.8px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .odd-bar i { display: block; height: 100%; background: var(--accent); }
+  .odd-pct { min-width: 40px; text-align: right; font-family: 'Patrick Hand', cursive; }
+
+  /* ---------- inventory ---------- */
+  .inv-row { display: flex; align-items: center; gap: 16px; padding: 10px 4px; }
+  .mat-thumb { position: relative; width: 76px; height: 76px; border: var(--pen) solid var(--line); border-radius: 14px 8px 16px 8px; display: grid; place-items: center; flex: none; background: var(--frame); }
+  .mat-thumb .ph-label { font-family: 'Kalam'; font-size: 11px; color: var(--ink-soft); }
+  .qty-badge { position: absolute; right: -8px; bottom: -8px; min-width: 30px; height: 26px; padding: 0 6px; border: var(--pen) solid var(--line); border-radius: 9px; background: var(--frame); display: grid; place-items: center; font-family: 'Patrick Hand', cursive; font-size: 17px; }
+  .inv-meta { flex: 1; }
+  .inv-name { font-family: 'Patrick Hand', cursive; font-size: 24px; }
+  .inv-desc { height: 0; border-top: 2px solid #d7d5cb; margin: 10px 0; }
+  .inv-desc.short { width: 60%; }
+
+  /* placeholder image hatch */
+  .ph {
+    background-color: #f3f2ec;
+    background-image: repeating-linear-gradient(45deg, #e2e0d6 0 1.5px, transparent 1.5px 10px);
+  }
+
+  /* ---------- compendium ---------- */
+  .comp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .comp-cell { border: var(--pen) solid var(--line); border-radius: 14px 8px 16px 8px; aspect-ratio: 1/1.08; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--frame); }
+  .comp-cell .portrait { width: 64px; height: 64px; }
+  .comp-name { font-family: 'Patrick Hand', cursive; font-size: 21px; }
+  .comp-cell.locked .comp-name { color: var(--ink-soft); }
+
+  /* detail card */
+  .detail { position: relative; border: var(--pen) solid var(--line); border-radius: 18px; padding: 38px 16px 16px; height: 100%; display: flex; flex-direction: column; }
+  .detail-name { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-family: 'Patrick Hand', cursive; font-size: 24px; background: var(--accent); border: var(--pen) solid var(--line); border-radius: 14px; padding: 4px 22px; }
+  .detail-top { display: flex; gap: 14px; }
+  .detail-left { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .detail-portrait { width: 78px; height: 78px; }
+  .chip { font-family: 'Patrick Hand', cursive; font-size: 16px; border: 2px solid var(--line); border-radius: 14px; padding: 2px 12px; }
+  .detail-right { flex: 1; }
+  .rarity-line { display: flex; align-items: center; gap: 8px; font-family: 'Patrick Hand', cursive; font-size: 21px; }
+  .stars { letter-spacing: 2px; }
+  .fr-label { font-family: 'Patrick Hand', cursive; font-size: 18px; margin-top: 8px; }
+  .fr-bar { height: 22px; border: var(--pen) solid var(--line); border-radius: 6px; background: repeating-linear-gradient(60deg, transparent 0 7px, #e9e7dd 7px 9px); position: relative; overflow: hidden; }
+  .fr-bar i { position: absolute; inset: 0; right: 36%; background: var(--accent); border-right: var(--pen) solid var(--line); }
+  .fr-bar span { position: absolute; left: 8px; top: 0; font-family: 'Patrick Hand', cursive; font-size: 15px; line-height: 22px; }
+  .drops-title { font-family: 'Patrick Hand', cursive; font-size: 20px; margin: 10px 0 4px; }
+  .drops { display: flex; gap: 18px; }
+  .drop { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .drop .mat-thumb { width: 56px; height: 56px; }
+  .drop span { font-family: 'Patrick Hand', cursive; font-size: 15px; }
+  .detail-nav { display: flex; justify-content: space-between; margin-top: auto; padding-top: 10px; }
+
+  /* ---------- interaction sheet ---------- */
+  .dim { position: absolute; inset: 0; background: rgba(44,43,40,0.28); }
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: var(--frame); border: 3px solid var(--line); border-bottom: none;
+    border-radius: 24px 24px 0 0; padding: 14px 16px 18px;
+  }
+  .sheet .handle { width: 54px; height: 6px; border-radius: 6px; background: #d7d5cb; margin: 0 auto 12px; }
+  .sheet-head { display: flex; gap: 14px; align-items: center; }
+  .sheet-portrait { width: 70px; height: 70px; flex: none; }
+  .sheet-name { font-family: 'Patrick Hand', cursive; font-size: 26px; line-height: 1; }
+  .timer { font-size: 15px; color: var(--ink-soft); margin-top: 4px; }
+
+  /* arrival */
+  .arrival { height: 100%; display: flex; flex-direction: column; align-items: center; }
+  .arrival .figure { width: 150px; height: 200px; margin: auto 0 0; }
+  .dialogue { width: 100%; border: var(--pen) solid var(--line); border-radius: 8px; padding: 26px 16px 16px; position: relative; margin-top: 8px; min-height: 120px; }
+  .dialogue .tag { position: absolute; top: -18px; left: 14px; font-family: 'Patrick Hand', cursive; font-size: 20px; border: var(--pen) solid var(--line); border-radius: 16px; background: var(--frame); padding: 2px 16px; }
+  .dialogue .txt { font-family: 'Patrick Hand', cursive; font-size: 24px; }
+  .dialogue .chev { position: absolute; right: 14px; bottom: 10px; font-size: 18px; }
+
+  .note { font-size: 14px; color: var(--ink-soft); }
+  svg { stroke-linecap: round; stroke-linejoin: round; }
+</style>
+</head>
+<body>
+
+<!-- ===================== reusable svg defs ===================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- heart-coin -->
+    <g id="i-coin">
+      <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="2.2"/>
+      <path d="M16 23 C9 18 9 11 13 11 C15 11 16 13 16 14 C16 13 17 11 19 11 C23 11 23 18 16 23 Z" fill="var(--accent)" stroke="currentColor" stroke-width="2"/>
+    </g>
+    <!-- back arrow -->
+    <g id="i-back">
+      <path d="M19 7 C9 9 6 13 7 18 M7 18 L4 14 M7 18 L12 16" fill="none" stroke="currentColor" stroke-width="2.4"/>
+    </g>
+    <!-- quests clipboard -->
+    <g id="i-quests">
+      <rect x="7" y="6" width="20" height="24" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"/>
+      <rect x="12" y="3" width="10" height="6" rx="2.5" fill="var(--frame)" stroke="currentColor" stroke-width="2.2"/>
+      <rect x="11" y="13" width="5" height="5" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M18 15 H24 M11 23 H23" stroke="currentColor" stroke-width="2"/>
+    </g>
+    <!-- inventory bag -->
+    <g id="i-bag">
+      <path d="M6 14 L26 14 L24 30 L8 30 Z" fill="none" stroke="currentColor" stroke-width="2.2"/>
+      <path d="M11 14 C11 7 21 7 21 14" fill="none" stroke="currentColor" stroke-width="2.2"/>
+    </g>
+    <!-- fairy log book -->
+    <g id="i-book">
+      <path d="M7 7 L24 5 L25 26 L8 28 Z" fill="none" stroke="currentColor" stroke-width="2.2"/>
+      <path d="M7 7 L8 28" stroke="currentColor" stroke-width="2.2"/>
+      <path d="M19 12 c-2 -3 -5 0 0 4 c5 -4 2 -7 0 -4" fill="none" stroke="currentColor" stroke-width="2"/>
+    </g>
+    <!-- finance bars -->
+    <g id="i-finance">
+      <path d="M6 27 H27" fill="none" stroke="currentColor" stroke-width="2.2"/>
+      <rect x="8" y="17" width="4.5" height="8" fill="none" stroke="currentColor" stroke-width="2.2"/>
+      <rect x="15" y="11" width="4.5" height="14" fill="none" stroke="currentColor" stroke-width="2.2"/>
+      <rect x="22" y="6" width="4.5" height="19" fill="none" stroke="currentColor" stroke-width="2.2"/>
+    </g>
+    <!-- me person -->
+    <g id="i-me">
+      <circle cx="16" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="2.2"/>
+      <path d="M6 30 C6 21 26 21 26 30" fill="none" stroke="currentColor" stroke-width="2.2"/>
+    </g>
+    <!-- enhance up -->
+    <g id="i-up">
+      <path d="M16 6 L16 22 M16 6 L10 13 M16 6 L22 13 M10 26 H22" fill="none" stroke="currentColor" stroke-width="2.4"/>
+    </g>
+    <!-- egg silhouette face -->
+    <g id="i-egg">
+      <path d="M32 6 C18 6 12 26 12 38 C12 52 22 60 32 60 C42 60 52 52 52 38 C52 26 46 6 32 6 Z" fill="#efeee7" stroke="currentColor" stroke-width="2.4"/>
+      <ellipse cx="25" cy="34" rx="2.2" ry="3.4" fill="currentColor"/>
+      <ellipse cx="39" cy="34" rx="2.2" ry="3.4" fill="currentColor"/>
+      <ellipse cx="32" cy="44" rx="3" ry="4" fill="none" stroke="currentColor" stroke-width="2.2"/>
+    </g>
+    <!-- webster portrait -->
+    <g id="i-webster">
+      <path d="M14 30 C10 16 22 8 32 8 C42 8 54 16 50 30 C50 22 44 18 44 24 C40 16 24 16 20 24 C20 18 14 22 14 30 Z" fill="#efeee7" stroke="currentColor" stroke-width="2.2"/>
+      <path d="M14 30 C12 40 18 50 32 50 C46 50 52 40 50 30 C46 38 40 40 32 40 C24 40 18 38 14 30 Z" fill="#fff" stroke="currentColor" stroke-width="2.2"/>
+      <circle cx="25" cy="33" r="1.8" fill="currentColor"/>
+      <circle cx="39" cy="33" r="1.8" fill="currentColor"/>
+      <path d="M31 36 l2 2 l-2 1" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M28 43 q4 3 8 0" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    </g>
+  </defs>
+</svg>
+
+<header class="page-head">
+  <h1>Moneymon — Lo-fi Wireframes</h1>
+  <p class="sub">Hand-drawn layouts translated to clickable-fidelity wireframes. Structure &amp; flow only — final art, copy and motion come later. Currency = <b>Wishes</b> (the heart-coin).</p>
+
+  <div class="tweaks" id="tweaks" role="group" aria-label="Sketch tweaks">
+    <div class="grp">
+      <span class="lbl">Glow color</span>
+      <button class="swatch" data-accent="#f3df8e" style="background:#f3df8e" aria-pressed="true" title="Wish yellow"></button>
+      <button class="swatch" data-accent="#bfe3c6" style="background:#bfe3c6" aria-pressed="false" title="Mint"></button>
+      <button class="swatch" data-accent="#f3c9d6" style="background:#f3c9d6" aria-pressed="false" title="Petal pink"></button>
+      <button class="swatch" data-accent="#c9d8f3" style="background:#c9d8f3" aria-pressed="false" title="Sky"></button>
+    </div>
+    <div class="grp">
+      <span class="lbl">Ink weight</span>
+      <button class="opt" data-pen="1.8px" aria-pressed="false">fine</button>
+      <button class="opt" data-pen="2.4px" aria-pressed="true">med</button>
+      <button class="opt" data-pen="3.2px" aria-pressed="false">bold</button>
+    </div>
+  </div>
+</header>
+
+<main class="gallery">
+
+  <!-- ===================== HOME ===================== -->
+  <h2 class="section-title">1 · Home / Fountain View</h2>
+  <div class="row">
+
+    <!-- Home base -->
+    <div class="device">
+      <div class="phone" data-screen-label="Home (base)">
+        <div class="screen">
+          <div class="topbar">
+            <div class="slot-left">
+              <button class="icon-btn"><span class="glyph"><svg viewBox="0 0 32 32"><use href="#i-quests"/></svg></span><span class="cap">Quests</span></button>
+            </div>
+            <div class="coin"><svg viewBox="0 0 32 32"><use href="#i-coin"/></svg>500</div>
+          </div>
+          <div class="body" style="display:flex;align-items:center;justify-content:center">
+            <div class="fountain">
+              <div class="tier t1"></div>
+              <div class="tier t2"></div>
+              <div class="tier t3"></div>
+              <div class="level-tag">Level 10</div>
+            </div>
+          </div>
+          <nav class="nav" data-nav></nav>
+        </div>
+      </div>
+      <div class="caption">Home — base<small>Fountain scales with level. Tap fountain → Toss.</small></div>
+    </div>
+
+    <!-- Home actions -->
+    <div class="device">
+      <div class="phone" data-screen-label="Home (actions)">
+        <div class="screen">
+          <div class="topbar">
+            <div class="slot-left">
+              <button class="icon-btn"><span class="glyph"><svg viewBox="0 0 32 32"><use href="#i-quests"/></svg></span><span class="cap">Quests</span></button>
+            </div>
+            <div class="coin"><svg viewBox="0 0 32 32"><use href="#i-coin"/></svg>500</div>
+          </div>
+          <div class="body" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+            <div class="fountain glow" style="margin-bottom:18px">
+              <div class="tier t1"></div>
+              <div class="tier t2"></div>
+              <div class="tier t3"></div>
+            </div>
+            <div style="display:flex;gap:12px">
+              <button class="sbtn">Enhance <svg viewBox="0 0 32 32" width="20" height="20"><use href="#i-up"/></svg></button>
+              <button class="sbtn primary">Wish <svg viewBox="0 0 32 32" width="20" height="20"><use href="#i-coin"/></svg></button>
+            </div>
+          </div>
+          <nav class="nav" data-nav></nav>
+        </div>
+      </div>
+      <div class="caption">Home — fountain actions<small>Enhance (level up) &amp; Wish (toss) surfaced.</small></div>
+    </div>
+
+    <!-- Toss -->
+    <div class="device">
+      <div class="phone" data-screen-label="Toss screen">
+        <div class="screen">
+          <div class="topbar">
+            <div class="slot-left">
+              <button class="back-btn"><svg viewBox="0 0 32 32"><use href="#i-back"/></svg></button>
+            </div>
+            <div class="coin"><svg viewBox="0 0 32 32"><use href="#i-coin"/></svg>500</div>
+          </div>
+          <div class="body" style="display:flex;flex-direction:column;align-items:center;gap:10px;padding-top:6px">
+            <div class="fountain glow">
+              <div class="tier t1" style="height:34px"></div>
+              <div class="tier t2" style="height:48px"></div>
+              <div class="tier t3" style="height:62px"></div>
+            </div>
+            <div style="width:100%;padding:0 6px">
+              <div class="stepper">
+                <button class="step-btn">–</button>
+                <span class="step-val"><svg viewBox="0 0 32 32" width="26" height="26"><use href="#i-coin"/></svg>100</span>
+                <button class="step-btn">+</button>
+              </div>
+              <div class="slider-track"><div class="slider-fill"></div><div class="slider-knob"></div></div>
+              <div class="note" style="text-align:center;margin-bottom:6px">Tossing 100 — better odds at higher tosses</div>
+              <div class="odds">
+                <div class="odd-row"><span class="odd-stars">★</span><span class="odd-bar"><i style="width:70%"></i></span><span class="odd-pct">70%</span></div>
+                <div class="odd-row"><span class="odd-stars">★★</span><span class="odd-bar"><i style="width:25%"></i></span><span class="odd-pct">25%</span></div>
+                <div class="odd-row"><span class="odd-stars">★★★</span><span class="odd-bar"><i style="width:5%"></i></span><span class="odd-pct">5%</span></div>
+              </div>
+            </div>
+            <button class="sbtn primary full" style="margin-top:4px">Toss</button>
+          </div>
+        </div>
+      </div>
+      <div class="caption">Toss — fountain interaction<small>Amount selector + rarity odds → confirm.</small></div>
+    </div>
+
+  </div>
+
+  <!-- ===================== EARNING ===================== -->
+  <h2 class="section-title">2 · Quests — where Wishes are earned</h2>
+  <div class="row">
+    <div class="device">
+      <div class="phone" data-screen-label="Quests (Daily)">
+        <div class="screen">
+          <div class="topbar">
+            <div class="slot-left">
+              <button class="back-btn"><svg viewBox="0 0 32 32"><use href="#i-back"/></svg></button>
+              <span class="screen-title">Daily Goals</span>
+            </div>
+            <div class="coin"><svg viewBox="0 0 32 32"><use href="#i-coin"/></svg>500</div>
+          </div>
+          <div class="body" style="display:flex;flex-direction:column">
+            <div class="quest-card">
+              <div class="quest-reward"><span class="reward-coin"><svg viewBox="0 0 32 32"><use href="#i-coin"/></svg></span><span class="reward-num">10</span></div>
+              <div class="quest-task">Log today's spending</div>
+            </div>
+            <div class="quest-card">
+              <div class="quest-reward"><span class="reward-coin"><svg viewBox="0 0 32 32"><use href="#i-coin"/></svg></span><span class="reward-num">30</span></div>
+              <div class="quest-task">Pack lunch instead of eating out</div>
+            </div>
+            <div class="quest-card done">
+              <div class="quest-reward"><span class="reward-coin"><svg viewBox="0 0 32 32"><use href="#i-coin"/></svg></span><span class="reward-num">50</span></div>
+              <div class="quest-task">Check your account balance</div>
+            </div>
+            <div style="margin-top:auto">
+              <div class="tabbar">
+                <div class="tab active">Daily</div>
+                <div class="tab">Weekly</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="caption">Quests — Daily<small>Tap card to complete → coins fly to balance.</small></div>
+    </div>
+
+    <!-- Inventory -->
+    <div class="device">
+      <div class="phone" data-screen-label="Inventory">
+        <div class="screen">
+          <div class="topbar">
+            <div class="slot-left">
+              <button class="back-btn"><svg viewBox="0 0 32 32"><use href="#i-back"/></svg></button>
+            </div>
+            <span class="screen-title" style="position:absolute;left:50%;top:8px;transform:translateX(-50%)">Inventory</span>
+            <div class="coin"><svg viewBox="0 0 32 32"><use href="#i-coin"/></svg>500</div>
+          </div>
+          <div class="body">
+            <div class="inv-row">
+              <div class="mat-thumb ph"><span class="ph-label">leaf</span><span class="qty-badge">×3</span></div>
+              <div class="inv-meta"><div class="inv-name">Leaf</div><div class="inv-desc"></div><div class="inv-desc short"></div></div>
+            </div>
+            <div class="inv-row">
+              <div class="mat-thumb ph"><span class="ph-label">wood</span><span class="qty-badge">×3</span></div>
+              <div class="inv-meta"><div class="inv-name">Wood</div><div class="inv-desc"></div><div class="inv-desc short"></div></div>
+            </div>
+            <div class="inv-row">
+              <div class="mat-thumb ph"><span class="ph-label">dew</span><span class="qty-badge">×3</span></div>
+              <div class="inv-meta"><div class="inv-name">Dewdrop</div><div class="inv-desc"></div><div class="inv-desc short"></div></div>
+            </div>
+          </div>
+          <nav class="nav" data-nav data-active="inventory"></nav>
+        </div>
+      </div>
+      <div class="caption">Inventory / Materials<small>Fairy drops, with quantities.</small></div>
+    </div>
+  </div>
+
+  <!-- ===================== FAIRIES ===================== -->
+  <h2 class="section-title">3 · Fairy visit &amp; interaction</h2>
+  <div class="row">
+
+    <!-- Arrival -->
+    <div class="device">
+      <div class="phone" data-screen-label="Fairy arrival">
+        <div class="screen">
+          <div class="topbar">
+            <div class="slot-left"></div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
+              <div class="coin"><svg viewBox="0 0 32 32"><use href="#i-coin"/></svg>500</div>
+              <button class="sbtn" style="font-size:18px;padding:5px 12px">Skip ▶|</button>
+            </div>
+          </div>
+          <div class="body arrival">
+            <svg class="figure" viewBox="0 0 150 200">
+              <ellipse cx="75" cy="55" rx="42" ry="46" fill="#efeee7" stroke="var(--ink)" stroke-width="2.6"/>
+              <ellipse cx="60" cy="50" rx="3" ry="6" fill="var(--ink)"/>
+              <ellipse cx="90" cy="50" rx="3" ry="6" fill="var(--ink)"/>
+              <path d="M60 70 q15 14 30 0" fill="none" stroke="var(--ink)" stroke-width="2.6"/>
+              <path d="M48 110 L75 96 L102 110 L92 150 L58 150 Z" fill="#fff" stroke="var(--ink)" stroke-width="2.6"/>
+              <path d="M56 112 L34 132 M94 112 L116 132" fill="none" stroke="var(--ink)" stroke-width="2.6"/>
+              <path d="M75 150 L75 188" fill="none" stroke="var(--ink)" stroke-width="2.6"/>
+            </svg>
+            <div class="dialogue">
+              <span class="tag">Antony</span>
+              <div class="txt">The lord is here.</div>
+              <span class="chev">▽</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="caption">Fairy arrival<small>Plays after a Toss summons a visitor.</small></div>
+    </div>
+
+    <!-- Interaction sheet -->
+    <div class="device">
+      <div class="phone" data-screen-label="Fairy interaction sheet">
+        <div class="screen">
+          <div class="topbar">
+            <div class="slot-left">
+              <button class="icon-btn"><span class="glyph"><svg viewBox="0 0 32 32"><use href="#i-quests"/></svg></span><span class="cap">Quests</span></button>
+            </div>
+            <div class="coin"><svg viewBox="0 0 32 32"><use href="#i-coin"/></svg>500</div>
+          </div>
+          <div class="body" style="display:flex;align-items:center;justify-content:center">
+            <div class="fountain glow" style="opacity:.5">
+              <div class="tier t1" style="height:30px"></div>
+              <div class="tier t2" style="height:42px"></div>
+              <div class="tier t3" style="height:54px"></div>
+            </div>
+          </div>
+          <div class="dim"></div>
+          <div class="sheet">
+            <div class="handle"></div>
+            <div class="sheet-head">
+              <svg class="sheet-portrait" viewBox="0 0 64 64"><use href="#i-egg"/></svg>
+              <div>
+                <div class="sheet-name">Antony</div>
+                <div class="rarity-line"><span class="stars">★★★</span></div>
+                <div class="timer">Visit ends in 2h 14m</div>
+              </div>
+            </div>
+            <div class="fr-label">Friendship · Lv 3</div>
+            <div class="fr-bar"><i></i><span>4 / 6</span></div>
+            <button class="sbtn primary full" style="margin:12px 0 6px">Pat Antony 🤍</button>
+            <div class="note" style="text-align:center;margin-bottom:8px">Next pat available in 5h</div>
+            <div class="drops-title" style="font-size:17px;margin:4px 0">Possible drops</div>
+            <div class="drops">
+              <div class="drop"><div class="mat-thumb ph"><span class="ph-label">wood</span></div><span>Wood</span></div>
+              <div class="drop"><div class="mat-thumb ph"><span class="ph-label">leaf</span></div><span>Leaf</span></div>
+              <div class="drop"><div class="mat-thumb ph"><span class="ph-label">dew</span></div><span>Dewdrop</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="caption">Fairy interaction sheet<small>Tap an active fairy at the fountain.</small></div>
+    </div>
+  </div>
+
+  <!-- ===================== COMPENDIUM ===================== -->
+  <h2 class="section-title">4 · Fairy Log (Compendium)</h2>
+  <div class="row">
+
+    <!-- grid -->
+    <div class="device">
+      <div class="phone" data-screen-label="Fairy Log grid">
+        <div class="screen">
+          <div class="topbar">
+            <div class="slot-left">
+              <button class="back-btn"><svg viewBox="0 0 32 32"><use href="#i-back"/></svg></button>
+            </div>
+            <span class="screen-title" style="position:absolute;left:50%;top:8px;transform:translateX(-50%);display:flex;align-items:center;gap:6px"><svg viewBox="0 0 32 32" width="26" height="26"><use href="#i-book"/></svg>Fairy Log</span>
+            <div class="coin"><svg viewBox="0 0 32 32"><use href="#i-coin"/></svg>500</div>
+          </div>
+          <div class="body">
+            <div class="comp-grid">
+              <div class="comp-cell"><svg class="portrait" viewBox="0 0 64 64"><use href="#i-webster"/></svg><span class="comp-name">Webster</span></div>
+              <div class="comp-cell locked"><svg class="portrait" viewBox="0 0 64 64"><use href="#i-egg"/></svg><span class="comp-name">? ? ?</span></div>
+              <div class="comp-cell locked"><svg class="portrait" viewBox="0 0 64 64"><use href="#i-egg"/></svg><span class="comp-name">? ? ?</span></div>
+              <div class="comp-cell locked"><svg class="portrait" viewBox="0 0 64 64"><use href="#i-egg"/></svg><span class="comp-name">? ? ?</span></div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;margin-top:14px">
+              <button class="sbtn">Next ▷</button>
+            </div>
+          </div>
+          <nav class="nav" data-nav data-active="fairylog"></nav>
+        </div>
+      </div>
+      <div class="caption">Compendium grid<small>Discovered vs. silhouette (undiscovered).</small></div>
+    </div>
+
+    <!-- detail -->
+    <div class="device">
+      <div class="phone" data-screen-label="Fairy Log detail">
+        <div class="screen">
+          <div class="topbar">
+            <div class="slot-left">
+              <button class="back-btn"><svg viewBox="0 0 32 32"><use href="#i-back"/></svg></button>
+            </div>
+            <span class="screen-title" style="position:absolute;left:50%;top:8px;transform:translateX(-50%);display:flex;align-items:center;gap:6px"><svg viewBox="0 0 32 32" width="26" height="26"><use href="#i-book"/></svg>Fairy Log</span>
+            <div class="coin"><svg viewBox="0 0 32 32"><use href="#i-coin"/></svg>500</div>
+          </div>
+          <div class="body">
+            <div class="detail">
+              <div class="detail-name">Snowball</div>
+              <div class="detail-top">
+                <div class="detail-left">
+                  <svg class="detail-portrait" viewBox="0 0 64 64"><use href="#i-egg"/></svg>
+                  <span class="chip">spring</span>
+                  <span class="chip">cute</span>
+                </div>
+                <div class="detail-right">
+                  <div class="rarity-line">Rarity <span class="stars">★★★</span></div>
+                  <div class="fr-label">Friendship lvl</div>
+                  <div class="fr-bar"><i></i><span>4 / 6</span></div>
+                  <div class="note" style="margin-top:6px">Visits: 12 · "Hums old lullabies by the water."</div>
+                </div>
+              </div>
+              <div class="drops-title">Drops</div>
+              <div class="drops">
+                <div class="drop"><div class="mat-thumb ph"><span class="ph-label">wood</span></div><span>Wood</span></div>
+                <div class="drop"><div class="mat-thumb ph"><span class="ph-label">leaf</span></div><span>Leaf</span></div>
+              </div>
+              <div class="detail-nav">
+                <button class="sbtn">◁ Back</button>
+                <button class="sbtn">Next ▷</button>
+              </div>
+            </div>
+          </div>
+          <nav class="nav" data-nav data-active="fairylog"></nav>
+        </div>
+      </div>
+      <div class="caption">Compendium detail<small>Rarity, friendship, visits, lore, drops.</small></div>
+    </div>
+  </div>
+
+  <div style="margin-top:46px;max-width:680px">
+    <h2 class="section-title">Notes &amp; suggestions</h2>
+    <ul style="font-size:16px;line-height:1.5;color:var(--ink)">
+      <li>Your home screen has empty corners. I moved <b>Quests</b> to a fixed top-left badge and the <b>Wish balance</b> top-right so they read as the persistent bar — and kept Inventory / Fairy Log / Me as the bottom nav.</li>
+      <li>The fountain <b>tiers grow + the yellow glow intensifies with level</b> — that's the "reflects current level" cue. Worth pairing with a small "Lv 10 → 11" progress sliver near the Enhance button.</li>
+      <li>On <b>Toss</b>, I expanded your <code>♥100 +</code> into an amount stepper <i>and</i> a slider, plus a live rarity-odds preview, since "odds shown" is core to the decision. Confirm flows straight into the arrival screen.</li>
+      <li><b>Quests</b> need a clear done-state: tap a card → it dims, strikes through, the heart fills, and the reward animates up into the top balance. The honesty/verify prompt can be a quick confirm sheet before that.</li>
+      <li>One thing to decide: is <b>Enhance</b> a separate flow from leveling via tosses? If Wishes both summon fairies <i>and</i> upgrade the fountain, players will feel the tension — good, but flag the cost clearly.</li>
+    </ul>
+  </div>
+
+</main>
+
+<script>
+  // ---- stamp shared bottom nav ----
+  const NAV = [
+    { key: 'finance',   label: 'Finance',   icon: 'i-finance' },
+    { key: 'inventory', label: 'Inventory', icon: 'i-bag' },
+    { key: 'fairylog',  label: 'Fairy Log', icon: 'i-book' },
+    { key: 'me',        label: 'Me',        icon: 'i-me' }
+  ];
+  document.querySelectorAll('[data-nav]').forEach(nav => {
+    const active = nav.getAttribute('data-active') || '';
+    nav.innerHTML = NAV.map(n => `
+      <button class="icon-btn ${n.key === active ? 'active' : ''}">
+        <span class="glyph"><svg viewBox="0 0 32 32"><use href="#${n.icon}"/></svg></span>
+        <span class="cap">${n.label}</span>
+      </button>`).join('');
+  });
+
+  // ---- tweaks ----
+  const root = document.documentElement;
+  document.querySelectorAll('.swatch').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.swatch').forEach(x => x.setAttribute('aria-pressed', 'false'));
+    b.setAttribute('aria-pressed', 'true');
+    root.style.setProperty('--accent', b.dataset.accent);
+  }));
+  document.querySelectorAll('.opt[data-pen]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.opt[data-pen]').forEach(x => x.setAttribute('aria-pressed', 'false'));
+    b.setAttribute('aria-pressed', 'true');
+    root.style.setProperty('--pen', b.dataset.pen);
+  }));
+</script>
+</body>
+</html>

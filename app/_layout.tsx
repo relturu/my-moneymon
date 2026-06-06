@@ -47,6 +47,9 @@ export default function RootLayout() {
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="toss" options={{ headerShown: false, presentation: 'card' }} />
+        <Stack.Screen name="quests" options={{ headerShown: false, presentation: 'card' }} />
+        <Stack.Screen name="fairy-log-detail" options={{ headerShown: false, presentation: 'card' }} />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

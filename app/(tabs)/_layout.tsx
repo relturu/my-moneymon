@@ -7,55 +7,49 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme].tint,
-        tabBarInactiveTintColor: Colors[colorScheme].tabIconDefault,
-        tabBarStyle: { backgroundColor: Colors[colorScheme].background },
+        tabBarActiveTintColor: colors.tint,
+        tabBarInactiveTintColor: colors.tabIconDefault,
+        tabBarStyle: { backgroundColor: colors.background },
         headerShown: false,
         tabBarButton: HapticTab,
       }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Fountain',
+          title: 'Home',
           tabBarIcon: ({ color }) => <IconSymbol size={26} name="sparkles" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="overview"
+        name="finance"
         options={{
-          title: 'Overview',
-          tabBarIcon: ({ color }) => <IconSymbol size={26} name="house.fill" color={color} />,
+          title: 'Finance',
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="chart.bar.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="spending"
+        name="inventory"
         options={{
-          title: 'Spending',
-          tabBarIcon: ({ color }) => <IconSymbol size={26} name="creditcard.fill" color={color} />,
+          title: 'Inventory',
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="bag.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="budgets"
+        name="fairy-log"
         options={{
-          title: 'Budgets',
-          tabBarIcon: ({ color }) => <IconSymbol size={26} name="chart.pie.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="quests"
-        options={{
-          title: 'Quests',
-          tabBarIcon: ({ color }) => <IconSymbol size={26} name="scroll.fill" color={color} />,
+          title: 'Fairy Log',
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="book.closed.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: 'Me',
           tabBarIcon: ({ color }) => <IconSymbol size={26} name="person.fill" color={color} />,
         }}
       />

@@ -13,10 +13,12 @@ const MAPPING = {
   'house.fill': 'home',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'chevron.down': 'expand-more',
   // tabs
   'sparkles': 'auto-awesome',
   'creditcard.fill': 'credit-card',
   'chart.pie.fill': 'pie-chart',
+  'chart.bar.fill': 'bar-chart',
   'scroll.fill': 'assignment',
   'bag.fill': 'shopping-bag',
   'book.closed.fill': 'menu-book',
@@ -30,6 +32,9 @@ const MAPPING = {
   'gear': 'settings',
   'magnifyingglass': 'search',
   'clipboard.fill': 'assignment',
+  'heart.fill': 'favorite',
+  'star.fill': 'star',
+  'drop.fill': 'water-drop',
 } as IconMapping;
 
 export function IconSymbol({
