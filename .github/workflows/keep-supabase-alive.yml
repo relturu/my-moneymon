@@ -11,14 +11,11 @@ jobs:
     steps:
       - name: Ping Supabase
         run: |
-          body=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
             -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/" \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -H "Content-Type: application/json" \
-            || echo "\nHTTP_STATUS:000")
-          response=$(echo "$body" | grep "HTTP_STATUS" | cut -d: -f2)
-          echo "Response body: $(echo "$body" | grep -v HTTP_STATUS)"
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            || echo "000")
           echo "Response: HTTP $response"
           if [ "$response" -lt 200 ] || [ "$response" -ge 300 ]; then
             echo "Connection failed - could not reach Supabase (HTTP $response)"
