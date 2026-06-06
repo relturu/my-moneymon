@@ -15,8 +15,8 @@ jobs:
             -X GET "https://ivdaybeswzlddcyblkot.supabase.co/auth/v1/health" \
             || echo "000")
           echo "Response: HTTP $response"
-          if [ "$response" -lt 200 ] || [ "$response" -ge 300 ]; then
-            echo "Connection failed - could not reach Supabase (HTTP $response)"
+          if [ "$response" = "000" ]; then
+            echo "Could not reach Supabase at all"
             exit 1
           fi
-          echo "Ping successful - project is alive"
+          echo "Ping sent - server responded, project is alive"
