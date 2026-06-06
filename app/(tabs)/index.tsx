@@ -44,7 +44,16 @@ const RARITY_STARS: Record<string, string> = {
   legendary: '★★★★',
 };
 
-const INTERACTION_COOLDOWN_HOURS = 8;
+const MAX_CONVOS = 3;
+
+function generateConvoSlots(arrivedAt: Date, departsAt: Date): string[] {
+  const total = departsAt.getTime() - arrivedAt.getTime();
+  const segment = total / MAX_CONVOS;
+  return [0, 1, 2].map((i) => {
+    const segStart = arrivedAt.getTime() + i * segment;
+    return new Date(segStart + Math.random() * segment).toISOString();
+  });
+}
 
 function formatDuration(ms: number): string {
   if (ms <= 0) return '0m';
@@ -64,7 +73,6 @@ export default function FountainScreen() {
   const [activeFairy, setActiveFairy] = useState<ActiveFairy | null>(null);
   const [mailboxVisits, setMailboxVisits] = useState<MailboxVisit[]>([]);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [patting, setPatting] = useState(false);
   const [claiming, setClaiming] = useState(false);
   const [tick, setTick] = useState(0); // forces countdown re-render
   const { setFountain, setInventory, setFairyLog } = useNotifs();
@@ -269,40 +277,6 @@ export default function FountainScreen() {
     await load();
   }
 
-  async function handlePat() {
-    if (!activeFairy || !user) return;
-    setPatting(true);
-
-    const now = new Date().toISOString();
-    const db = supabase as any;
-    await db.from('fountain_visits')
-      .update({ interacted_at: now })
-      .eq('id', activeFairy.id);
-
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    if (authUser) {
-      if (activeFairy.collection) {
-        await db.from('user_fairy_collection')
-          .update({
-            last_interaction_at: now,
-            friendship_level: activeFairy.collection.friendship_level + 1,
-          })
-          .eq('id', activeFairy.collection.id);
-      } else {
-        await db.from('user_fairy_collection').insert({
-          user_id: authUser.id,
-          fairy_id: activeFairy.fairy_id,
-          friendship_level: 1,
-          total_visits: 0,
-          last_interaction_at: now,
-        });
-      }
-    }
-
-    await load();
-    setPatting(false);
-  }
-
   async function startDevTest() {
     const { data: { user: authUser } } = await supabase.auth.getUser();
     if (!authUser) return;
@@ -322,18 +296,26 @@ export default function FountainScreen() {
     }
 
     const now = new Date();
-    const arrivedAt = new Date(now.getTime() - 4 * 60 * 60 * 1000).toISOString();
-    const departsAt = new Date(now.getTime() - 60 * 60 * 1000).toISOString();
+    const arrivedAt = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+    const departsAt = new Date(now.getTime() - 60 * 60 * 1000);
+    // First slot is immediately available for dev testing
+    const convoSlots = [
+      new Date(now.getTime() - 1000).toISOString(),
+      new Date(now.getTime() + 30 * 60 * 1000).toISOString(),
+      new Date(now.getTime() + 60 * 60 * 1000).toISOString(),
+    ];
 
     const db = supabase as any;
     const { data: visitData } = await db.from('fountain_visits').insert({
       user_id: authUser.id,
       fairy_id: fairy.id,
       coins_spent: 0,
-      arrived_at: arrivedAt,
-      departs_at: departsAt,
+      arrived_at: arrivedAt.toISOString(),
+      departs_at: departsAt.toISOString(),
       is_active: true,
       materials_claimed: false,
+      convo_slots: convoSlots,
+      convo_count: 0,
     }).select().single();
 
     setDevTest({
@@ -371,22 +353,32 @@ export default function FountainScreen() {
     );
   }
 
-  function canPat(): boolean {
-    if (!activeFairy?.interacted_at) return true;
-    const elapsed = (Date.now() - new Date(activeFairy.interacted_at).getTime()) / (1000 * 60 * 60);
-    return elapsed >= INTERACTION_COOLDOWN_HOURS;
-  }
-
   function getTimeLeft(isoString: string | null): string {
     if (!isoString) return '';
     return formatDuration(new Date(isoString).getTime() - Date.now());
   }
 
-  function getCooldownText(): string {
-    if (!activeFairy?.interacted_at) return '';
-    const remaining = INTERACTION_COOLDOWN_HOURS * 3600 * 1000 - (Date.now() - new Date(activeFairy.interacted_at).getTime());
-    if (remaining <= 0) return '';
-    return `Next pat in ${formatDuration(remaining)}`;
+  function getNextConvoSlot(visit: ActiveFairy): string | null {
+    const slots = [...(visit.convo_slots ?? [])].sort();
+    const used = visit.convo_count ?? 0;
+    return slots[used] ?? null;
+  }
+
+  function canChat(visit: ActiveFairy): boolean {
+    const used = visit.convo_count ?? 0;
+    if (used >= MAX_CONVOS) return false;
+    const next = getNextConvoSlot(visit);
+    return !!next && Date.now() >= new Date(next).getTime();
+  }
+
+  function nextConvoText(visit: ActiveFairy): string {
+    const used = visit.convo_count ?? 0;
+    if (used >= MAX_CONVOS) return 'All conversations complete';
+    const next = getNextConvoSlot(visit);
+    if (!next) return '';
+    const ms = new Date(next).getTime() - Date.now();
+    if (ms <= 0) return 'Ready to talk!';
+    return `Next conversation in ${formatDuration(ms)}`;
   }
 
   const fountainLevel = user?.fountain_level ?? 1;
@@ -499,17 +491,21 @@ export default function FountainScreen() {
         {activeFairy ? (
           <View style={styles.actions}>
             <TouchableOpacity
-              style={[styles.primaryButton, { backgroundColor: colors.tint }]}
-              onPress={() => setSheetOpen(true)}>
+              style={[styles.primaryButton, { backgroundColor: canChat(activeFairy) ? colors.tint : colors.border }]}
+              onPress={() => canChat(activeFairy)
+                ? router.push(`/fairy-chat?visitId=${activeFairy.id}` as any)
+                : setSheetOpen(true)}>
               <IconSymbol size={18} name="heart.fill" color="#fff" />
-              <Text style={styles.primaryButtonText}>Visit {activeFairy.fairy.name}</Text>
+              <Text style={styles.primaryButtonText}>
+                {canChat(activeFairy) ? `Talk to ${activeFairy.fairy.name}` : `Visit ${activeFairy.fairy.name}`}
+              </Text>
             </TouchableOpacity>
             <View style={[styles.cooldownCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <Text style={[styles.cooldownLabel, { color: colors.icon }]}>
-                Next wish available in
+                {nextConvoText(activeFairy)}
               </Text>
               <Text style={[styles.cooldownTime, { color: colors.tint }]}>
-                {getTimeLeft(activeFairy.departs_at)}
+                Leaves in {getTimeLeft(activeFairy.departs_at)}
               </Text>
             </View>
           </View>
@@ -585,20 +581,25 @@ export default function FountainScreen() {
                 <TouchableOpacity
                   style={[
                     styles.patButton,
-                    { backgroundColor: canPat() ? colors.tint : colors.border },
+                    { backgroundColor: canChat(activeFairy) ? colors.tint : colors.border },
                   ]}
-                  onPress={handlePat}
-                  disabled={!canPat() || patting}>
-                  <Text style={[styles.patButtonText, { color: canPat() ? '#fff' : colors.icon }]}>
-                    {patting ? 'Patting...' : `Pat ${activeFairy.fairy.name}`}
+                  onPress={() => {
+                    setSheetOpen(false);
+                    router.push(`/fairy-chat?visitId=${activeFairy.id}` as any);
+                  }}
+                  disabled={!canChat(activeFairy)}>
+                  <Text style={[styles.patButtonText, { color: canChat(activeFairy) ? '#fff' : colors.icon }]}>
+                    {canChat(activeFairy) ? `Talk to ${activeFairy.fairy.name}` : 'Not ready to talk'}
                   </Text>
                 </TouchableOpacity>
 
-                {!canPat() && (
-                  <Text style={[styles.cooldownText, { color: colors.icon }]}>
-                    {getCooldownText()}
-                  </Text>
-                )}
+                <Text style={[styles.cooldownText, { color: colors.icon }]}>
+                  {nextConvoText(activeFairy)}
+                </Text>
+
+                <Text style={[styles.cooldownText, { color: colors.icon }]}>
+                  {(activeFairy.convo_count ?? 0)}/{MAX_CONVOS} conversations this visit
+                </Text>
 
                 {activeFairy.fairy.material_drop_type && (
                   <View style={styles.dropsRow}>

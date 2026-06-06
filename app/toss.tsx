@@ -100,16 +100,26 @@ export default function TossScreen() {
     const fairy = fairies[Math.floor(Math.random() * fairies.length)];
     const now = new Date();
     const visitHours = Math.floor(Math.random() * 6) + 1; // 1–6 hours
-    const departsAt = new Date(now.getTime() + visitHours * 60 * 60 * 1000).toISOString();
+    const departsAt = new Date(now.getTime() + visitHours * 60 * 60 * 1000);
+
+    // Generate 3 conversation slots randomly spread across the visit window
+    const total = departsAt.getTime() - now.getTime();
+    const segment = total / 3;
+    const convoSlots = [0, 1, 2].map((i) => {
+      const segStart = now.getTime() + i * segment;
+      return new Date(segStart + Math.random() * segment).toISOString();
+    });
 
     await (supabase.from('fountain_visits').insert({
       user_id: authUser.id,
       fairy_id: fairy.id,
       coins_spent: amount,
       arrived_at: now.toISOString(),
-      departs_at: departsAt,
+      departs_at: departsAt.toISOString(),
       is_active: true,
       materials_claimed: false,
+      convo_slots: convoSlots,
+      convo_count: 0,
     }) as any);
 
     const newBalance = user.coin_balance - amount;

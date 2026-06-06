@@ -359,6 +359,8 @@ export interface Database {
           is_active: boolean;
           interacted_at: string | null;
           materials_claimed: boolean;
+          convo_slots: string[] | null;
+          convo_count: number;
         };
         Insert: {
           id?: string;
@@ -370,6 +372,8 @@ export interface Database {
           is_active?: boolean;
           interacted_at?: string | null;
           materials_claimed?: boolean;
+          convo_slots?: string[] | null;
+          convo_count?: number;
         };
         Update: {
           id?: string;
@@ -381,6 +385,8 @@ export interface Database {
           is_active?: boolean;
           interacted_at?: string | null;
           materials_claimed?: boolean;
+          convo_slots?: string[] | null;
+          convo_count?: number;
         };
       };
 
