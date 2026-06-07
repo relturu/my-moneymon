@@ -102,13 +102,14 @@ export default function TossScreen() {
     const visitHours = Math.floor(Math.random() * 6) + 1; // 1–6 hours
     const departsAt = new Date(now.getTime() + visitHours * 60 * 60 * 1000);
 
-    // Generate 3 conversation slots randomly spread across the visit window
+    // Slot 0 is always immediately available; slots 1 and 2 are spread across the rest of the visit
     const total = departsAt.getTime() - now.getTime();
     const segment = total / 3;
-    const convoSlots = [0, 1, 2].map((i) => {
-      const segStart = now.getTime() + i * segment;
-      return new Date(segStart + Math.random() * segment).toISOString();
-    });
+    const convoSlots = [
+      now.toISOString(),
+      new Date(now.getTime() + segment + Math.random() * segment).toISOString(),
+      new Date(now.getTime() + 2 * segment + Math.random() * segment).toISOString(),
+    ];
 
     await (supabase.from('fountain_visits').insert({
       user_id: authUser.id,
@@ -134,6 +135,10 @@ export default function TossScreen() {
       source_type: 'fountain_toss',
       description: `Tossed ${amount} wishes for ${fairy.name}`,
     } as any);
+
+    // Clear the toss cooldown — it will be set again when this fairy leaves
+    await (supabase.from('users').update({ next_toss_available_at: null }) as any)
+      .eq('id', authUser.id);
 
     setTossing(false);
     router.replace('/(tabs)' as any);

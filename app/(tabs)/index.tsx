@@ -109,13 +109,12 @@ export default function FountainScreen() {
 
     const now = new Date().toISOString();
 
-    // Active visit: departs_at in the future
+    // Active visit: departs_at in the future — materials_claimed can be true if gift was collected early
     const { data: activeData } = await supabase
       .from('fountain_visits')
       .select('*')
       .eq('user_id', authUser.id)
       .eq('is_active', true)
-      .eq('materials_claimed', false)
       .gt('departs_at', now)
       .order('arrived_at', { ascending: false })
       .limit(1);
@@ -161,9 +160,35 @@ export default function FountainScreen() {
     }
     setMailboxVisits(mailboxList);
 
+    // Cleanup: visits that expired naturally after an early gift collect — mark is_active=false
+    const db = supabase as any;
+    await db.from('fountain_visits')
+      .update({ is_active: false })
+      .eq('user_id', authUser.id)
+      .eq('is_active', true)
+      .eq('materials_claimed', true)
+      .lt('departs_at', now);
+
     // Fountain dot: show when a fairy is visiting OR mailbox has uncollected items
     const hasFairy = !!(activeList && activeList.length > 0);
     setFountain(hasFairy || mailboxList.length > 0);
+
+    // Cooldown trigger: if no fairies active or in mailbox, set next_toss_available_at (skip for dev test)
+    const dt = getDevTest();
+    if (!hasFairy && mailboxList.length === 0 && p && p.next_toss_available_at == null && !dt.active) {
+      const { data: recentVisits } = await supabase
+        .from('fountain_visits')
+        .select('id')
+        .eq('user_id', authUser.id)
+        .eq('is_active', false)
+        .limit(1);
+      if (recentVisits && recentVisits.length > 0) {
+        const hours = Math.floor(Math.random() * 7) + 6; // 6–12 hours
+        const nextToss = new Date(Date.now() + hours * 3600000).toISOString();
+        await db.from('users').update({ next_toss_available_at: nextToss }).eq('id', authUser.id);
+        setUser({ ...p, next_toss_available_at: nextToss });
+      }
+    }
   }
 
   async function claimMailbox() {
@@ -296,13 +321,14 @@ export default function FountainScreen() {
     }
 
     const now = new Date();
-    const arrivedAt = new Date(now.getTime() - 4 * 60 * 60 * 1000);
-    const departsAt = new Date(now.getTime() - 60 * 60 * 1000);
-    // First slot is immediately available for dev testing
+    const arrivedAt = now;
+    // Departs in 10 min so it shows as an active fairy at the fountain
+    const departsAt = new Date(now.getTime() + 10 * 60 * 1000);
+    // First slot is immediately available; others are after departs (won't be reached in dev flow)
     const convoSlots = [
       new Date(now.getTime() - 1000).toISOString(),
-      new Date(now.getTime() + 30 * 60 * 1000).toISOString(),
-      new Date(now.getTime() + 60 * 60 * 1000).toISOString(),
+      new Date(now.getTime() + 5 * 60 * 1000).toISOString(),
+      new Date(now.getTime() + 8 * 60 * 1000).toISOString(),
     ];
 
     const db = supabase as any;
@@ -490,33 +516,60 @@ export default function FountainScreen() {
         {/* Action area */}
         {activeFairy ? (
           <View style={styles.actions}>
-            <TouchableOpacity
-              style={[styles.primaryButton, { backgroundColor: canChat(activeFairy) ? colors.tint : colors.border }]}
-              onPress={() => canChat(activeFairy)
-                ? router.push(`/fairy-chat?visitId=${activeFairy.id}` as any)
-                : setSheetOpen(true)}>
-              <IconSymbol size={18} name="heart.fill" color="#fff" />
-              <Text style={styles.primaryButtonText}>
-                {canChat(activeFairy) ? `Talk to ${activeFairy.fairy.name}` : `Visit ${activeFairy.fairy.name}`}
-              </Text>
-            </TouchableOpacity>
-            <View style={[styles.cooldownCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Text style={[styles.cooldownLabel, { color: colors.icon }]}>
-                {nextConvoText(activeFairy)}
-              </Text>
-              <Text style={[styles.cooldownTime, { color: colors.tint }]}>
-                Leaves in {getTimeLeft(activeFairy.departs_at)}
-              </Text>
-            </View>
+            {activeFairy.materials_claimed ? (
+              /* Gift already collected — fairy still hangs around */
+              <View style={[styles.cooldownCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <Text style={[styles.cooldownLabel, { color: colors.icon }]}>
+                  ✓ Gift collected · {activeFairy.fairy.name} is still visiting
+                </Text>
+                <Text style={[styles.cooldownTime, { color: colors.tint }]}>
+                  Leaves in {getTimeLeft(activeFairy.departs_at)}
+                </Text>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={[styles.primaryButton, { backgroundColor: canChat(activeFairy) ? colors.tint : colors.border }]}
+                onPress={() => canChat(activeFairy)
+                  ? router.push(`/fairy-chat?visitId=${activeFairy.id}` as any)
+                  : setSheetOpen(true)}>
+                <IconSymbol size={18} name="heart.fill" color="#fff" />
+                <Text style={styles.primaryButtonText}>
+                  {canChat(activeFairy) ? `Talk to ${activeFairy.fairy.name}` : `Visit ${activeFairy.fairy.name}`}
+                </Text>
+              </TouchableOpacity>
+            )}
+            {!activeFairy.materials_claimed && (
+              <View style={[styles.cooldownCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <Text style={[styles.cooldownLabel, { color: colors.icon }]}>
+                  {nextConvoText(activeFairy)}
+                </Text>
+                <Text style={[styles.cooldownTime, { color: colors.tint }]}>
+                  Leaves in {getTimeLeft(activeFairy.departs_at)}
+                </Text>
+              </View>
+            )}
           </View>
         ) : (
           <View style={styles.actions}>
-            <TouchableOpacity
-              style={[styles.primaryButton, { backgroundColor: colors.tint }]}
-              onPress={() => router.push('/toss' as any)}>
-              <IconSymbol size={18} name="heart.fill" color="#fff" />
-              <Text style={styles.primaryButtonText}>Wish ♥</Text>
-            </TouchableOpacity>
+            {/* Toss cooldown check */}
+            {user?.next_toss_available_at && new Date(user.next_toss_available_at).getTime() > Date.now() ? (
+              <View style={[styles.cooldownCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <Text style={[styles.cooldownLabel, { color: colors.icon }]}>Next fairy in</Text>
+                <Text style={[styles.cooldownTime, { color: colors.tint }]}>
+                  {getTimeLeft(user.next_toss_available_at)}
+                </Text>
+                <Text style={[styles.cooldownLabel, { color: colors.icon }]}>
+                  Come back soon ✨
+                </Text>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={[styles.primaryButton, { backgroundColor: colors.tint }]}
+                onPress={() => router.push('/toss' as any)}>
+                <IconSymbol size={18} name="heart.fill" color="#fff" />
+                <Text style={styles.primaryButtonText}>Wish ♥</Text>
+              </TouchableOpacity>
+            )}
             <View style={[styles.slotInfo, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <Text style={[styles.slotText, { color: colors.icon }]}>
                 {currentLevel?.fairy_slots ?? 1} fairy slot{(currentLevel?.fairy_slots ?? 1) > 1 ? 's' : ''} · Level {fountainLevel}

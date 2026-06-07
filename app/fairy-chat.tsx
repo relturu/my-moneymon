@@ -144,7 +144,14 @@ export default function FairyChatScreen() {
     }
 
     setSaving(false);
-    router.back();
+
+    // After the first conversation, navigate to gift screen (collect gift immediately)
+    // Subsequent convos just go back to the fountain
+    if (newConvoCount === 1) {
+      router.replace(`/fairy-gift?visitId=${visit.id}` as any);
+    } else {
+      router.back();
+    }
   }
 
   if (loading) {

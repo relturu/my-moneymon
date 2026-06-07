@@ -16,6 +16,7 @@ export interface Database {
           fountain_xp: number;
           fountain_level: number;
           avatar_url: string | null;
+          next_toss_available_at: string | null;
         };
         Insert: {
           id: string;
@@ -26,6 +27,7 @@ export interface Database {
           fountain_xp?: number;
           fountain_level?: number;
           avatar_url?: string | null;
+          next_toss_available_at?: string | null;
         };
         Update: {
           id?: string;
@@ -36,6 +38,7 @@ export interface Database {
           fountain_xp?: number;
           fountain_level?: number;
           avatar_url?: string | null;
+          next_toss_available_at?: string | null;
         };
       };
 
