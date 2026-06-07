@@ -1,78 +1,82 @@
 import { useEffect, useRef } from 'react';
-import { Animated, Easing, StyleSheet, View } from 'react-native';
+import { Animated, Easing, Image, StyleSheet } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
-import LogoIcon from '@/assets/images/logo.svg';
 
-const ICON_SIZE = 100;
+const ICON_SIZE = 140;
 
-export default function SplashAnim({ onDone }: { onDone: () => void }) {
+export default function SplashAnim({ ready, onDone }: { ready: boolean; onDone: () => void }) {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
 
-  const iconY = useRef(new Animated.Value(0)).current;
+  const rootOpacity = useRef(new Animated.Value(1)).current;
   const titleOpacity = useRef(new Animated.Value(0)).current;
-  const titleY = useRef(new Animated.Value(16)).current;
+  const titleY = useRef(new Animated.Value(40)).current;
 
   useEffect(() => {
+    if (!ready) return;
     Animated.sequence([
-      Animated.delay(350),
+      // Text slowly slides up and fades in
       Animated.parallel([
-        // Icon slides up
-        Animated.timing(iconY, {
-          toValue: -52,
-          duration: 650,
+        Animated.timing(titleOpacity, {
+          toValue: 1,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(titleY, {
+          toValue: 0,
+          duration: 1400,
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
-        // Title fades + rises in with a slight delay
-        Animated.sequence([
-          Animated.delay(220),
-          Animated.parallel([
-            Animated.timing(titleOpacity, {
-              toValue: 1,
-              duration: 480,
-              useNativeDriver: true,
-            }),
-            Animated.timing(titleY, {
-              toValue: 0,
-              duration: 480,
-              easing: Easing.out(Easing.cubic),
-              useNativeDriver: true,
-            }),
-          ]),
-        ]),
       ]),
-      Animated.delay(520),
+      // Hold on screen
+      Animated.delay(1800),
+      // Fade the whole splash out before handing off
+      Animated.timing(rootOpacity, {
+        toValue: 0,
+        duration: 700,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }),
     ]).start(() => onDone());
-  }, []);
+  }, [ready]);
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <View style={styles.content}>
-        <Animated.View style={{ transform: [{ translateY: iconY }] }}>
-          <LogoIcon width={ICON_SIZE} height={ICON_SIZE} />
-        </Animated.View>
-        <Animated.Text
-          style={[
-            styles.title,
-            { color: colors.text, opacity: titleOpacity, transform: [{ translateY: titleY }] },
-          ]}
-        >
+    <Animated.View style={[styles.root, { backgroundColor: colors.background, opacity: rootOpacity }]}>
+      <Image
+        source={require('@/assets/images/logov2.png')}
+        style={styles.logo}
+      />
+      {/* Extra paddingBottom so translateY slide doesn't get clipped */}
+      <Animated.View style={[styles.titleWrap, { opacity: titleOpacity, transform: [{ translateY: titleY }] }]}>
+        <Animated.Text style={[styles.title, { color: colors.text }]}>
           moneymon
         </Animated.Text>
-      </View>
-    </View>
+      </Animated.View>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { ...StyleSheet.absoluteFillObject, zIndex: 100, justifyContent: 'center', alignItems: 'center' },
-  content: { alignItems: 'center' },
+  root: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logo: {
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+    borderRadius: ICON_SIZE * 0.2,
+  },
+  titleWrap: {
+    marginTop: 18,
+    paddingBottom: 50,
+  },
   title: {
     fontSize: 36,
     fontFamily: 'Kanchenjunga_700Bold',
     letterSpacing: 1,
-    marginTop: 18,
   },
 });

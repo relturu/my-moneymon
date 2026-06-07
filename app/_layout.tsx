@@ -58,10 +58,13 @@ export default function RootLayout() {
     }
   }, [session, loading, splashDone, fontsLoaded, segments]);
 
+  // Ready once both the session check and fonts are done
+  const appReady = !loading && fontsLoaded;
+
   return (
     <NotifProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        {!splashDone && <SplashAnim onDone={() => setSplashDone(true)} />}
+        {!splashDone && <SplashAnim ready={appReady} onDone={() => setSplashDone(true)} />}
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
