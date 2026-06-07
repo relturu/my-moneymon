@@ -14,6 +14,7 @@ import { supabase } from '@/lib/supabase';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { captureSnapshot } from '@/lib/admin';
 import type { QuestDefinition, UserQuest } from '@/types/database';
 
 type QuestWithStatus = QuestDefinition & { userQuest?: UserQuest };
@@ -115,6 +116,8 @@ export default function QuestsScreen() {
             setCompleting(quest.id);
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) { setCompleting(null); return; }
+
+            await captureSnapshot(user.id);
 
             const now = new Date().toISOString();
 

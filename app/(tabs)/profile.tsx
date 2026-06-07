@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from 'expo-router';
 
 import { supabase } from '@/lib/supabase';
 import { Colors } from '@/constants/theme';
@@ -27,9 +28,11 @@ export default function ProfileScreen() {
   const [draftUsername, setDraftUsername] = useState('');
   const [saveError, setSaveError] = useState('');
 
-  useEffect(() => {
-    loadUser();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadUser();
+    }, [])
+  );
 
   async function loadUser() {
     const { data: { user: authUser } } = await supabase.auth.getUser();

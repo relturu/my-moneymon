@@ -17,6 +17,7 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { getDevTest, setDevTest } from '@/lib/dev-test';
+import { captureSnapshot } from '@/lib/admin';
 import { useNotifs } from '@/lib/notifications';
 import type {
   User,
@@ -197,6 +198,8 @@ export default function FountainScreen() {
 
     const { data: { user: authUser } } = await supabase.auth.getUser();
     if (!authUser) { setClaiming(false); return; }
+
+    await captureSnapshot(authUser.id);
 
     const drops: string[] = [];
     let totalXp = 0;

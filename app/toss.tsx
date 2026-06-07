@@ -15,6 +15,7 @@ import { supabase } from '@/lib/supabase';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { captureSnapshot } from '@/lib/admin';
 import type { User, FairyDefinition } from '@/types/database';
 import type { Rarity } from '@/types/database';
 
@@ -95,6 +96,8 @@ export default function TossScreen() {
 
     const { data: { user: authUser } } = await supabase.auth.getUser();
     if (!authUser) { setTossing(false); return; }
+
+    await captureSnapshot(authUser.id);
 
     const rolledRarity = rollRarity(odds, availableRarities);
 
