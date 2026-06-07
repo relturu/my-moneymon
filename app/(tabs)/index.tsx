@@ -5,9 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   Modal,
-  ScrollView,
   Pressable,
   Alert,
+  ImageBackground,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
@@ -46,14 +46,6 @@ const RARITY_STARS: Record<string, string> = {
 
 const MAX_CONVOS = 3;
 
-function generateConvoSlots(arrivedAt: Date, departsAt: Date): string[] {
-  const total = departsAt.getTime() - arrivedAt.getTime();
-  const segment = total / MAX_CONVOS;
-  return [0, 1, 2].map((i) => {
-    const segStart = arrivedAt.getTime() + i * segment;
-    return new Date(segStart + Math.random() * segment).toISOString();
-  });
-}
 
 function formatDuration(ms: number): string {
   if (ms <= 0) return '0m';
@@ -313,168 +305,122 @@ export default function FountainScreen() {
   const xpProgress = nextLevel
     ? Math.min(1, (user?.fountain_xp ?? 0) / nextLevel.xp_required)
     : 1;
-  const glowSize = Math.min(1.4, 1 + fountainLevel * 0.04);
 
   // Suppress unused tick warning — it's used to force countdown re-render
   void tick;
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <ImageBackground
+      source={require('@/assets/images/home-background.png')}
+      style={styles.bg}
+      resizeMode="cover">
+      <SafeAreaView style={styles.safeArea}>
 
-      {/* Coin badge — top right */}
-      <View style={styles.coinRow}>
-        <View style={[styles.wishBadge, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <IconSymbol size={16} name="heart.fill" color={colors.coin} />
-          <Text style={[styles.wishText, { color: colors.coin }]}>{user?.coin_balance ?? 0}</Text>
-        </View>
-      </View>
-
-      {/* Icon button row — quests left, mailbox right */}
-      <View style={styles.iconRow}>
-        <TouchableOpacity
-          style={[styles.iconButton, { backgroundColor: colors.card, borderColor: colors.border }]}
-          onPress={() => router.push('/quests' as any)}>
-          <IconSymbol size={22} name="scroll.fill" color={colors.tint} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.iconButton, { backgroundColor: colors.card, borderColor: colors.border }]}
-          onPress={mailboxVisits.length > 0
-            ? () => router.push(`/fairy-gift?visitId=${mailboxVisits[0].id}` as any)
-            : undefined}>
-          <Text style={styles.iconButtonEmoji}>🎁</Text>
-          {mailboxVisits.length > 0 && (
-            <View style={[styles.mailboxDot, { backgroundColor: '#EF4444', borderColor: colors.background }]} />
-          )}
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-
-        {/* Fountain card — large centered visual */}
-        <View style={[styles.fountainCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <TouchableOpacity
-            style={styles.fountainTouchable}
-            onPress={() => activeFairy ? setSheetOpen(true) : undefined}
-            activeOpacity={activeFairy ? 0.85 : 1}>
-
-            <View style={[
-              styles.glowRing,
-              {
-                borderColor: colors.tint,
-                opacity: 0.15 + fountainLevel * 0.02,
-                transform: [{ scale: glowSize }],
-              },
-            ]} />
-
-            <View style={styles.fountainTiers}>
-              <View style={[styles.tier1, { backgroundColor: colors.tint, opacity: 0.9 }]} />
-              <View style={[styles.tier2, { backgroundColor: colors.tint, opacity: 0.8 }]} />
-              <View style={[styles.tier3, { backgroundColor: colors.tint, opacity: 0.7 }]} />
-              <View style={[styles.basin, { backgroundColor: colors.tint, opacity: 0.6 }]} />
+        {/* Top row: coin+quests left, mailbox right */}
+        <View style={styles.topRow}>
+          {/* Left: coin badge + quests button stacked */}
+          <View style={styles.topLeft}>
+            <View style={styles.coinBadge}>
+              <Text style={styles.coinEmoji}>🪙</Text>
+              <Text style={styles.coinText}>{user?.coin_balance ?? 0}</Text>
             </View>
+            <TouchableOpacity
+              style={styles.topIconBtn}
+              onPress={() => router.push('/quests' as any)}>
+              <Text style={styles.topIconEmoji}>🗺️</Text>
+            </TouchableOpacity>
+          </View>
 
-            {activeFairy && (
-              <View style={[styles.fairyBubble, { backgroundColor: colors.card, borderColor: colors.tint }]}>
-                <Text style={styles.fairyBubbleEmoji}>✨</Text>
-                <Text style={[styles.fairyBubbleName, { color: colors.tint }]}>
-                  {activeFairy.fairy.name}
-                </Text>
-              </View>
+          {/* Right: mailbox */}
+          <TouchableOpacity
+            style={styles.topIconBtn}
+            onPress={mailboxVisits.length > 0
+              ? () => router.push(`/fairy-gift?visitId=${mailboxVisits[0].id}` as any)
+              : undefined}>
+            <Text style={styles.topIconEmoji}>🎁</Text>
+            {mailboxVisits.length > 0 && (
+              <View style={styles.mailboxDot} />
             )}
           </TouchableOpacity>
         </View>
 
-        {/* Fountain labels */}
-        <View style={styles.fountainLabels}>
-          <Text style={[styles.fountainTitle, { color: colors.text }]}>Wish Fountain</Text>
-          <Text style={[styles.levelLabel, { color: colors.text }]}>Level {fountainLevel}</Text>
+        {/* Middle spacer — fairy bubble if visiting */}
+        <View style={styles.middle}>
+          {activeFairy && (
+            <TouchableOpacity
+              style={styles.fairyBubble}
+              onPress={() => setSheetOpen(true)}>
+              <Text style={styles.fairyBubbleEmoji}>✨</Text>
+              <Text style={styles.fairyBubbleName}>{activeFairy.fairy.name}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Bottom info overlay — all white text */}
+        <View style={styles.bottomOverlay}>
+
+          <Text style={styles.fountainTitle}>Wish Fountain</Text>
+          <Text style={styles.levelLabel}>Level {fountainLevel}</Text>
+
           {nextLevel && (
             <View style={styles.xpRow}>
-              <View style={[styles.xpTrack, { backgroundColor: colors.border }]}>
-                <View style={[styles.xpFill, {
-                  backgroundColor: colors.tint,
-                  width: `${Math.round(xpProgress * 100)}%` as any,
-                }]} />
+              <View style={styles.xpTrack}>
+                <View style={[styles.xpFill, { width: `${Math.round(xpProgress * 100)}%` as any }]} />
               </View>
-              <Text style={[styles.xpLabel, { color: colors.icon }]}>
+              <Text style={styles.xpLabel}>
                 {user?.fountain_xp ?? 0} / {nextLevel.xp_required} XP
               </Text>
             </View>
           )}
-        </View>
 
-        {/* Action area */}
-        {activeFairy ? (
-          <View style={styles.actions}>
-            {activeFairy.materials_claimed ? (
-              <View style={[styles.cooldownCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <Text style={[styles.cooldownLabel, { color: colors.icon }]}>
-                  ✓ Gift collected · {activeFairy.fairy.name} is still visiting
-                </Text>
-                <Text style={[styles.cooldownTime, { color: colors.tint }]}>
-                  Leaves in {getTimeLeft(activeFairy.departs_at)}
-                </Text>
-              </View>
-            ) : (
-              <TouchableOpacity
-                style={[styles.primaryButton, { backgroundColor: canChat(activeFairy) ? colors.tint : colors.border }]}
-                onPress={() => canChat(activeFairy)
-                  ? router.push(`/fairy-chat?visitId=${activeFairy.id}` as any)
-                  : setSheetOpen(true)}>
-                <IconSymbol size={18} name="heart.fill" color="#fff" />
-                <Text style={styles.primaryButtonText}>
-                  {canChat(activeFairy) ? `Talk to ${activeFairy.fairy.name}` : `Visit ${activeFairy.fairy.name}`}
-                </Text>
-              </TouchableOpacity>
-            )}
-            {!activeFairy.materials_claimed && (
-              <View style={[styles.cooldownCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <Text style={[styles.cooldownLabel, { color: colors.icon }]}>
-                  {nextConvoText(activeFairy)}
-                </Text>
-                <Text style={[styles.cooldownTime, { color: colors.tint }]}>
-                  Leaves in {getTimeLeft(activeFairy.departs_at)}
-                </Text>
-              </View>
-            )}
-          </View>
-        ) : (
-          <View style={styles.actions}>
-            {user?.next_toss_available_at && new Date(user.next_toss_available_at).getTime() > Date.now() ? (
-              <View style={[styles.cooldownCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <Text style={[styles.cooldownLabel, { color: colors.icon }]}>Next fairy in</Text>
-                <Text style={[styles.cooldownTime, { color: colors.tint }]}>
-                  {getTimeLeft(user.next_toss_available_at)}
-                </Text>
-                <Text style={[styles.cooldownLabel, { color: colors.icon }]}>
-                  Come back soon ✨
-                </Text>
-              </View>
-            ) : (
-              <TouchableOpacity
-                style={[styles.primaryButton, { backgroundColor: colors.tint }]}
-                onPress={() => router.push('/toss' as any)}>
-                <IconSymbol size={18} name="heart.fill" color="#fff" />
-                <Text style={styles.primaryButtonText}>Wish ♥</Text>
-              </TouchableOpacity>
-            )}
-            <View style={[styles.slotInfo, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Text style={[styles.slotText, { color: colors.icon }]}>
+          {activeFairy ? (
+            <View style={styles.actions}>
+              {activeFairy.materials_claimed ? (
+                <>
+                  <Text style={styles.infoText}>✓ Gift collected · {activeFairy.fairy.name} is still visiting</Text>
+                  <Text style={styles.timerText}>Leaves in {getTimeLeft(activeFairy.departs_at)}</Text>
+                </>
+              ) : (
+                <>
+                  <TouchableOpacity
+                    style={[styles.primaryButton, { backgroundColor: canChat(activeFairy) ? colors.tint : 'rgba(255,255,255,0.25)' }]}
+                    onPress={() => canChat(activeFairy)
+                      ? router.push(`/fairy-chat?visitId=${activeFairy.id}` as any)
+                      : setSheetOpen(true)}>
+                    <Text style={styles.primaryButtonText}>
+                      {canChat(activeFairy) ? `Talk to ${activeFairy.fairy.name}` : `Visit ${activeFairy.fairy.name}`}
+                    </Text>
+                  </TouchableOpacity>
+                  <Text style={styles.infoText}>{nextConvoText(activeFairy)}</Text>
+                  <Text style={styles.timerText}>Leaves in {getTimeLeft(activeFairy.departs_at)}</Text>
+                </>
+              )}
+            </View>
+          ) : (
+            <View style={styles.actions}>
+              {user?.next_toss_available_at && new Date(user.next_toss_available_at).getTime() > Date.now() ? (
+                <>
+                  <Text style={styles.infoText}>Next fairy in</Text>
+                  <Text style={styles.timerText}>{getTimeLeft(user.next_toss_available_at)}</Text>
+                  <Text style={styles.infoText}>Come back soon ✨</Text>
+                </>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.primaryButton, { backgroundColor: colors.tint }]}
+                  onPress={() => router.push('/toss' as any)}>
+                  <Text style={styles.primaryButtonText}>Wish ♥</Text>
+                </TouchableOpacity>
+              )}
+              <Text style={styles.infoText}>
                 {currentLevel?.fairy_slots ?? 1} fairy slot{(currentLevel?.fairy_slots ?? 1) > 1 ? 's' : ''} · Level {fountainLevel}
               </Text>
+              <TouchableOpacity onPress={startDevTest}>
+                <Text style={styles.devTestText}>Test Fairy Material Functionality</Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              style={[styles.devTestButton, { backgroundColor: colors.card, borderColor: colors.border }]}
-              onPress={startDevTest}>
-              <Text style={[styles.devTestText, { color: colors.icon }]}>
-                Test Fairy Material Functionality
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
+          )}
 
-      </ScrollView>
+        </View>
 
       {/* Fairy Interaction Bottom Sheet */}
       <Modal
@@ -572,146 +518,93 @@ export default function FountainScreen() {
       </Modal>
 
     </SafeAreaView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  bg: { flex: 1 },
   safeArea: { flex: 1 },
 
-  // Coin badge row — right-aligned
-  coinRow: {
+  // Top row
+  topRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    paddingHorizontal: 20,
-    paddingTop: 2,
-    paddingBottom: 2,
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingHorizontal: 16,
+    paddingTop: 4,
   },
-  wishBadge: {
+  topLeft: { alignItems: 'flex-start', gap: 8 },
+  coinBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    backgroundColor: 'rgba(0,0,0,0.28)',
     borderRadius: 20,
-    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
   },
-  wishText: { fontSize: 16, fontWeight: '700' },
-
-  // Icon button row — quests left, mailbox right
-  iconRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 4,
-  },
-  iconButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    borderWidth: 1,
+  coinEmoji: { fontSize: 16 },
+  coinText: { fontSize: 16, fontFamily: 'Kanchenjunga_700Bold', color: '#FCD34D' },
+  topIconBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.28)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconButtonEmoji: { fontSize: 22 },
+  topIconEmoji: { fontSize: 22 },
   mailboxDot: {
     position: 'absolute',
-    top: -4,
-    right: -4,
+    top: -3,
+    right: -3,
     width: 12,
     height: 12,
     borderRadius: 6,
+    backgroundColor: '#EF4444',
     borderWidth: 2,
+    borderColor: 'transparent',
   },
 
-  content: { flexGrow: 1, paddingHorizontal: 20, paddingBottom: 32, gap: 16, alignItems: 'center' },
-
-  // Fountain card — large centered visual
-  fountainCard: {
-    width: '100%',
-    aspectRatio: 1,
-    borderRadius: 20,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  fountainTouchable: { flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center', position: 'relative' },
-  glowRing: {
-    position: 'absolute',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    borderWidth: 40,
-  },
-  fountainTiers: { alignItems: 'center' },
-  tier1: { width: 60, height: 28, borderRadius: 30, marginBottom: -4, zIndex: 4 },
-  tier2: { width: 110, height: 32, borderRadius: 30, marginBottom: -4, zIndex: 3 },
-  tier3: { width: 160, height: 36, borderRadius: 30, marginBottom: -4, zIndex: 2 },
-  basin: { width: 200, height: 40, borderRadius: 20, zIndex: 1 },
-
+  // Middle — fairy bubble floats here
+  middle: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   fairyBubble: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    zIndex: 10,
+    gap: 6,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
-  fairyBubbleEmoji: { fontSize: 14 },
-  fairyBubbleName: { fontSize: 13, fontWeight: '600' },
+  fairyBubbleEmoji: { fontSize: 16 },
+  fairyBubbleName: { fontSize: 14, fontFamily: 'Kanchenjunga_700Bold', color: '#fff' },
 
-  // Labels below fountain card
-  fountainLabels: { alignItems: 'center', gap: 4, width: '100%' },
-  fountainTitle: { fontSize: 20, fontWeight: '700', textAlign: 'center' },
-  levelLabel: { fontSize: 15, fontWeight: '500', textAlign: 'center' },
-  xpRow: { width: '100%', gap: 6, marginTop: 4 },
-  xpTrack: { height: 8, borderRadius: 4, overflow: 'hidden' },
-  xpFill: { height: '100%', borderRadius: 4 },
-  xpLabel: { fontSize: 12, textAlign: 'center' },
+  // Bottom overlay — white text info
+  bottomOverlay: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    gap: 6,
+  },
+  fountainTitle: { fontSize: 22, fontFamily: 'Kanchenjunga_700Bold', color: '#fff', textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
+  levelLabel: { fontSize: 15, fontFamily: 'Kanchenjunga_600SemiBold', color: 'rgba(255,255,255,0.85)' },
+  xpRow: { gap: 4, marginBottom: 4 },
+  xpTrack: { height: 6, borderRadius: 3, overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.3)' },
+  xpFill: { height: '100%', borderRadius: 3, backgroundColor: '#fff' },
+  xpLabel: { fontSize: 11, color: 'rgba(255,255,255,0.75)' },
 
-  actions: { gap: 10, width: '100%' },
+  actions: { gap: 8 },
   primaryButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
     borderRadius: 16,
-    paddingVertical: 18,
+    paddingVertical: 16,
   },
-  primaryButtonText: { color: '#fff', fontSize: 17, fontWeight: '700' },
-
-  cooldownCard: {
-    borderRadius: 12,
-    borderWidth: 1,
-    padding: 14,
-    alignItems: 'center',
-    gap: 4,
-  },
-  cooldownLabel: { fontSize: 13 },
-  cooldownTime: { fontSize: 20, fontWeight: '700' },
-
-  slotInfo: {
-    borderRadius: 12,
-    borderWidth: 1,
-    padding: 12,
-    alignItems: 'center',
-  },
-  slotText: { fontSize: 13 },
-
-  devTestButton: {
-    borderRadius: 12,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    padding: 12,
-    alignItems: 'center',
-  },
-  devTestText: { fontSize: 12 },
+  primaryButtonText: { color: '#fff', fontSize: 17, fontFamily: 'Kanchenjunga_700Bold' },
+  infoText: { fontSize: 13, color: 'rgba(255,255,255,0.85)', textAlign: 'center' },
+  timerText: { fontSize: 22, fontFamily: 'Kanchenjunga_700Bold', color: '#fff', textAlign: 'center' },
+  devTestText: { fontSize: 12, color: 'rgba(255,255,255,0.55)', textAlign: 'center', textDecorationLine: 'underline' },
 
   // Bottom sheet
   scrim: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
@@ -735,7 +628,7 @@ const styles = StyleSheet.create({
   },
   portraitEmoji: { fontSize: 32 },
   sheetHeaderInfo: { flex: 1, gap: 4 },
-  sheetFairyName: { fontSize: 22, fontWeight: '700' },
+  sheetFairyName: { fontSize: 22, fontFamily: 'Kanchenjunga_700Bold' },
   sheetRarity: { fontSize: 18 },
   sheetTimer: { fontSize: 13 },
 

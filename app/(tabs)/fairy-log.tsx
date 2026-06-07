@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 8,
   },
-  title: { fontSize: 24, fontWeight: '700' },
+  title: { fontSize: 24, fontFamily: 'Kanchenjunga_700Bold' },
   topBarRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   closeBtn: {
     width: 38,
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
   },
-  wishText: { fontSize: 15, fontWeight: '700' },
+  wishText: { fontSize: 15, fontFamily: 'Kanchenjunga_700Bold' },
 
   pager: { flex: 1 },
 
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   portraitEmoji: { fontSize: 40 },
-  fairyName: { fontSize: 15, fontWeight: '600', textAlign: 'center' },
+  fairyName: { fontSize: 15, fontFamily: 'Kanchenjunga_600SemiBold', textAlign: 'center' },
 
   // Bottom navigation
   bottomBar: {

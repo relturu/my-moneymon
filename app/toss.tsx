@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
   },
-  wishText: { fontSize: 16, fontWeight: '700' },
+  wishText: { fontSize: 16, fontFamily: 'Kanchenjunga_700Bold' },
 
   content: { padding: 20, gap: 16 },
 
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
   miniTier1: { width: 40, height: 18, borderRadius: 20, marginBottom: -3, zIndex: 3 },
   miniTier2: { width: 70, height: 20, borderRadius: 20, marginBottom: -3, zIndex: 2 },
   miniTier3: { width: 100, height: 24, borderRadius: 20, zIndex: 1 },
-  fountainTitle: { fontSize: 22, fontWeight: '700' },
+  fountainTitle: { fontSize: 22, fontFamily: 'Kanchenjunga_700Bold' },
 
   section: {
     borderRadius: 16,
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: 'Kanchenjunga_700Bold',
     letterSpacing: 0.8,
   },
 
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
   },
-  amountText: { fontSize: 36, fontWeight: '800' },
+  amountText: { fontSize: 36, fontFamily: 'Kanchenjunga_700Bold' },
 
   amountGrid: {
     flexDirection: 'row',
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1.5,
   },
-  amountChipText: { fontSize: 15, fontWeight: '600' },
+  amountChipText: { fontSize: 15, fontFamily: 'Kanchenjunga_600SemiBold' },
 
   helperText: { fontSize: 13, textAlign: 'center' },
 
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  oddLabel: { fontSize: 13, width: 130 },
+  oddLabel: { fontSize: 13, fontFamily: 'Kanchenjunga_400Regular', width: 130 },
   oddTrack: {
     flex: 1,
     height: 8,

@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  title: { flex: 1, fontSize: 20, fontWeight: '700' },
+  title: { flex: 1, fontSize: 20, fontFamily: 'Kanchenjunga_700Bold' },
   coinBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
   },
-  coinText: { fontSize: 14, fontWeight: '700' },
+  coinText: { fontSize: 14, fontFamily: 'Kanchenjunga_700Bold' },
 
   content: { padding: 20, gap: 20, paddingBottom: 12 },
 
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   headerLeft: { flex: 1, gap: 10 },
-  fairyName: { fontSize: 22, fontWeight: '700' },
+  fairyName: { fontSize: 22, fontFamily: 'Kanchenjunga_700Bold' },
 
   tagsRow: { flexDirection: 'row', gap: 8 },
   tag: {
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
 
   // Drops
   dropsSection: { gap: 12 },
-  dropsLabel: { fontSize: 15, fontWeight: '700' },
+  dropsLabel: { fontSize: 15, fontFamily: 'Kanchenjunga_700Bold' },
   dropsRow: { flexDirection: 'row', gap: 16 },
   dropItem: { alignItems: 'center', gap: 6 },
   dropThumb: {
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dropName: { fontSize: 12, fontWeight: '500' },
+  dropName: { fontSize: 12, fontFamily: 'Kanchenjunga_500Medium' },
 
   // Bottom nav
   bottomNav: {

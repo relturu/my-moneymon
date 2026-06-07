@@ -15,6 +15,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 
+import Svg, { Circle, G, Text as SvgText } from 'react-native-svg';
+
 import { supabase } from '@/lib/supabase';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -24,6 +26,8 @@ import type { Transaction, Budget, Category } from '@/types/database';
 type BudgetWithCategory = Budget & { category: Category | null };
 type BudgetExpanded = BudgetWithCategory & { spent: number; transactions: Transaction[] };
 type SubTab = 'overview' | 'transactions' | 'budgets';
+
+const CHART_COLORS = ['#69835C', '#A78BFA', '#F59E0B', '#10B981', '#3B82F6', '#EC4899', '#B7C8BF', '#F97316'];
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -434,6 +438,12 @@ export default function FinanceScreen() {
               {net >= 0 ? '+' : '-'}${Math.abs(net).toFixed(2)}
             </Text>
           </View>
+          <SpendingBreakdown
+            enrichedBudgets={enrichedBudgets}
+            otherSpent={otherSpent}
+            overallEnriched={overallEnriched}
+            colors={colors}
+          />
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent</Text>
             <TouchableOpacity style={[styles.addBtn, { backgroundColor: colors.tint }]} onPress={openAddTxn}>
@@ -492,10 +502,8 @@ export default function FinanceScreen() {
 
             {/* Overall spending limit */}
             {overallEnriched ? (
-              <BudgetCard
+              <OverallBudgetHeroCard
                 budget={overallEnriched}
-                isExpanded={expandedBudgetId === overallEnriched.id}
-                onToggle={() => setExpandedBudgetId(p => p === overallEnriched.id ? null : overallEnriched.id)}
                 onEdit={() => openEditBudget(overallEnriched)}
                 onDelete={() => confirmDeleteBudget(overallEnriched)}
                 colors={colors}
@@ -923,6 +931,229 @@ const bcStyles = StyleSheet.create({
   txnName: { fontSize: 13, fontWeight: '500' },
   txnDate: { fontSize: 11, marginTop: 1 },
   txnAmount: { fontSize: 13, fontWeight: '600' },
+});
+
+// ── DonutChart ──────────────────────────────────────────────────────────────────
+
+function DonutChart({ segments, size = 160, centerLabel, textColor }: {
+  segments: { label: string; amount: number; color: string }[];
+  size?: number;
+  centerLabel: string;
+  textColor: string;
+}) {
+  const strokeWidth = 22;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const center = size / 2;
+  const total = segments.reduce((s, seg) => s + seg.amount, 0);
+  if (total <= 0) return null;
+
+  let accumulated = 0;
+  return (
+    <View style={{ alignItems: 'center' }}>
+      <Svg width={size} height={size}>
+        <G rotation="-90" origin={`${center}, ${center}`}>
+          {segments.map((seg, i) => {
+            const length = (seg.amount / total) * circumference;
+            const offset = circumference - accumulated;
+            accumulated += length;
+            return (
+              <Circle
+                key={i}
+                cx={center}
+                cy={center}
+                r={radius}
+                fill="none"
+                stroke={seg.color}
+                strokeWidth={strokeWidth}
+                strokeDasharray={`${length} ${circumference - length}`}
+                strokeDashoffset={offset}
+              />
+            );
+          })}
+        </G>
+        <SvgText
+          x={center}
+          y={center - 6}
+          textAnchor="middle"
+          fontSize={15}
+          fontWeight="700"
+          fill={textColor}
+        >
+          {centerLabel}
+        </SvgText>
+        <SvgText
+          x={center}
+          y={center + 13}
+          textAnchor="middle"
+          fontSize={10}
+          fill={textColor}
+          opacity={0.6}
+        >
+          total spent
+        </SvgText>
+      </Svg>
+    </View>
+  );
+}
+
+// ── OverallBudgetHeroCard ───────────────────────────────────────────────────────
+
+function OverallBudgetHeroCard({ budget, onEdit, onDelete, colors }: {
+  budget: BudgetExpanded; onEdit: () => void; onDelete: () => void; colors: any;
+}) {
+  const limit = Number(budget.amount_limit);
+  const pct = limit > 0 ? budget.spent / limit : 0;
+  const isOver = budget.spent > limit;
+  const isAmber = !isOver && pct >= 0.8;
+  const barColor = isOver ? colors.expense : isAmber ? '#F59E0B' : '#69835C';
+  const dateRange = formatDateRange(budget.start_date, budget.end_date);
+
+  return (
+    <View style={heroStyles.card}>
+      <View style={heroStyles.topRow}>
+        <Text style={heroStyles.cardLabel}>OVERALL SPENDING LIMIT</Text>
+        <View style={heroStyles.iconRow}>
+          <TouchableOpacity onPress={onEdit} style={heroStyles.iconBtn}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <IconSymbol size={14} name="pencil" color="rgba(255,255,255,0.7)" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onDelete} style={heroStyles.iconBtn}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <IconSymbol size={14} name="trash" color="rgba(255,255,255,0.7)" />
+          </TouchableOpacity>
+        </View>
+      </View>
+      <Text style={heroStyles.spentAmount}>${budget.spent.toFixed(2)} spent</Text>
+      <Text style={heroStyles.ofLimit}>of ${limit.toFixed(2)}</Text>
+      {dateRange ? <Text style={heroStyles.dateRange}>{dateRange}</Text> : null}
+      <View style={heroStyles.barTrack}>
+        <View style={[heroStyles.barFill, {
+          width: `${Math.min(pct, 1) * 100}%` as any,
+          backgroundColor: barColor,
+        }]} />
+      </View>
+      <View style={heroStyles.bottomRow}>
+        <Text style={[heroStyles.statText, { color: isOver ? '#FCA5A5' : 'rgba(255,255,255,0.8)' }]}>
+          {Math.round(pct * 100)}% used
+        </Text>
+        <Text style={[heroStyles.statText, { color: isOver ? '#FCA5A5' : 'rgba(255,255,255,0.8)' }]}>
+          {isOver
+            ? `Over by $${(budget.spent - limit).toFixed(2)}`
+            : `$${(limit - budget.spent).toFixed(2)} left`}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+const heroStyles = StyleSheet.create({
+  card: { backgroundColor: '#425F4D', borderRadius: 16, padding: 18, marginBottom: 10 },
+  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  cardLabel: { fontSize: 10, fontWeight: '700', color: 'rgba(255,255,255,0.6)', letterSpacing: 1.2 },
+  iconRow: { flexDirection: 'row', gap: 8 },
+  iconBtn: { padding: 4 },
+  spentAmount: { fontSize: 34, fontWeight: '800', color: '#fff', lineHeight: 38 },
+  ofLimit: { fontSize: 14, color: 'rgba(255,255,255,0.65)', marginBottom: 2 },
+  dateRange: { fontSize: 11, color: 'rgba(255,255,255,0.45)', marginBottom: 8 },
+  barTrack: { height: 16, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.15)', overflow: 'hidden', marginVertical: 14 },
+  barFill: { height: 16, borderRadius: 8 },
+  bottomRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  statText: { fontSize: 13, fontWeight: '600' },
+});
+
+// ── SpendingBreakdown ───────────────────────────────────────────────────────────
+
+function SpendingBreakdown({ enrichedBudgets, otherSpent, overallEnriched, colors }: {
+  enrichedBudgets: BudgetExpanded[];
+  otherSpent: number;
+  overallEnriched: BudgetExpanded | null;
+  colors: any;
+}) {
+  const segments: { label: string; amount: number; color: string }[] = [];
+  enrichedBudgets.forEach((b) => {
+    if (b.spent > 0) {
+      segments.push({ label: b.category?.name ?? 'Budget', amount: b.spent, color: CHART_COLORS[segments.length % CHART_COLORS.length] });
+    }
+  });
+  if (otherSpent > 0) {
+    segments.push({ label: 'Other', amount: otherSpent, color: CHART_COLORS[segments.length % CHART_COLORS.length] });
+  }
+  const total = segments.reduce((s, seg) => s + seg.amount, 0);
+
+  return (
+    <View style={sbStyles.container}>
+      <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 10 }]}>My Spending</Text>
+
+      {overallEnriched && (() => {
+        const limit = Number(overallEnriched.amount_limit);
+        const pct = limit > 0 ? overallEnriched.spent / limit : 0;
+        const isOver = overallEnriched.spent > limit;
+        const barColor = isOver ? colors.expense : pct >= 0.8 ? '#F59E0B' : '#69835C';
+        return (
+          <View style={sbStyles.overallBar}>
+            <View style={sbStyles.overallBarHeader}>
+              <Text style={sbStyles.overallBarTitle}>Overall Limit</Text>
+              <Text style={sbStyles.overallBarAmounts}>
+                ${overallEnriched.spent.toFixed(2)} / ${limit.toFixed(2)}
+              </Text>
+            </View>
+            <View style={sbStyles.barTrack}>
+              <View style={[sbStyles.barFill, {
+                width: `${Math.min(pct, 1) * 100}%` as any,
+                backgroundColor: barColor,
+              }]} />
+            </View>
+          </View>
+        );
+      })()}
+
+      {total === 0 ? (
+        <Text style={[styles.emptyText, { color: colors.icon, textAlign: 'center', paddingVertical: 16 }]}>
+          No spending data
+        </Text>
+      ) : (
+        <View style={[sbStyles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <DonutChart segments={segments} centerLabel={`$${total.toFixed(2)}`} size={160} textColor={colors.text} />
+          <View style={sbStyles.legend}>
+            {segments.map((seg, i) => {
+              const pct = Math.round((seg.amount / total) * 100);
+              return (
+                <View key={i} style={sbStyles.legendRow}>
+                  <View style={[sbStyles.legendDot, { backgroundColor: seg.color }]} />
+                  <Text style={[sbStyles.legendLabel, { color: colors.text }]} numberOfLines={1}>{seg.label}</Text>
+                  <Text style={[sbStyles.legendAmount, { color: colors.text }]}>${seg.amount.toFixed(2)}</Text>
+                  <Text style={[sbStyles.legendPct, { color: colors.icon }]}>{pct}%</Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+      )}
+    </View>
+  );
+}
+
+const sbStyles = StyleSheet.create({
+  container: { gap: 0 },
+  overallBar: {
+    backgroundColor: '#425F4D',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 10,
+  },
+  overallBarHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  overallBarTitle: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.8)' },
+  overallBarAmounts: { fontSize: 13, fontWeight: '700', color: '#fff' },
+  barTrack: { height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.2)', overflow: 'hidden' },
+  barFill: { height: 8, borderRadius: 4 },
+  chartCard: { borderRadius: 14, borderWidth: 1, padding: 16, alignItems: 'center', gap: 12 },
+  legend: { width: '100%', gap: 8 },
+  legendRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  legendDot: { width: 10, height: 10, borderRadius: 5, flexShrink: 0 },
+  legendLabel: { flex: 1, fontSize: 13 },
+  legendAmount: { fontSize: 13, fontWeight: '600' },
+  legendPct: { fontSize: 12, minWidth: 32, textAlign: 'right' },
 });
 
 // ── Styles ─────────────────────────────────────────────────────────────────────
