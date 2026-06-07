@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 
 import { supabase } from '@/lib/supabase';
 import { Colors } from '@/constants/theme';
@@ -120,7 +120,9 @@ export default function FinanceScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
 
+  const params = useLocalSearchParams<{ tab?: string; hint?: string }>();
   const [subTab, setSubTab] = useState<SubTab>('overview');
+  const [questHint, setQuestHint] = useState<string | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [budgets, setBudgets] = useState<BudgetWithCategory[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -159,6 +161,13 @@ export default function FinanceScreen() {
   const [savingCat, setSavingCat] = useState(false);
 
   useFocusEffect(useCallback(() => { load(); }, []));
+
+  useEffect(() => {
+    if (params.tab && (['overview', 'transactions', 'budgets'] as string[]).includes(params.tab)) {
+      setSubTab(params.tab as SubTab);
+    }
+    if (params.hint) setQuestHint(params.hint);
+  }, [params.tab, params.hint]);
 
   async function load() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -384,13 +393,24 @@ export default function FinanceScreen() {
           <TouchableOpacity
             key={t}
             style={[styles.tabBtn, subTab === t && { backgroundColor: colors.tint }]}
-            onPress={() => setSubTab(t)}>
+            onPress={() => { setSubTab(t); setQuestHint(null); }}>
             <Text style={[styles.tabBtnText, { color: subTab === t ? '#fff' : colors.icon }]}>
               {t.charAt(0).toUpperCase() + t.slice(1)}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
+
+      {/* Quest hint banner */}
+      {questHint && (
+        <View style={[styles.hintBanner, { backgroundColor: colors.tint + '1A', borderColor: colors.tint }]}>
+          <IconSymbol size={14} name="scroll.fill" color={colors.tint} />
+          <Text style={[styles.hintText, { color: colors.tint }]}>{questHint}</Text>
+          <TouchableOpacity onPress={() => setQuestHint(null)}>
+            <IconSymbol size={14} name="xmark" color={colors.tint} />
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* ── Overview ── */}
       {subTab === 'overview' && (
@@ -917,6 +937,18 @@ const styles = StyleSheet.create({
   tabRow: { flexDirection: 'row', marginHorizontal: 20, marginBottom: 8, borderRadius: 12, borderWidth: 1, padding: 4, gap: 4 },
   tabBtn: { flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: 'center' },
   tabBtnText: { fontSize: 13, fontWeight: '600' },
+  hintBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 20,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  hintText: { flex: 1, fontSize: 13 },
 
   content: { padding: 16, gap: 10 },
   centerContent: { flex: 1, justifyContent: 'center', alignItems: 'center' },

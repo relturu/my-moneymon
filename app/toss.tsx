@@ -22,36 +22,48 @@ const AMOUNTS = [25, 50, 100, 200, 300, 500];
 
 const RARITY_LABELS: Record<Rarity, string> = {
   common: 'Common ★',
-  uncommon: 'Uncommon ★★',
-  rare: 'Rare ★★★',
+  rare: 'Rare ★★',
+  mythical: 'Mythical ★★★',
   legendary: 'Legendary ★★★★',
 };
 
-function computeOdds(amount: number): Record<Rarity, number> {
-  const t = Math.max(0, Math.min(1, (amount - 25) / 475));
-  const raw = {
-    common: 70 - t * 45,
-    uncommon: 20 + t * 5,
-    rare: 8 + t * 22,
-    legendary: 2 + t * 18,
-  };
-  const total = raw.common + raw.uncommon + raw.rare + raw.legendary;
-  return {
-    common: Math.round((raw.common / total) * 100),
-    uncommon: Math.round((raw.uncommon / total) * 100),
-    rare: Math.round((raw.rare / total) * 100),
-    legendary: Math.round((raw.legendary / total) * 100),
-  };
+const RARITY_UNLOCK_LEVEL: Record<Rarity, number> = {
+  common: 1,
+  rare: 2,
+  mythical: 3,
+  legendary: 4,
+};
+
+const ALL_RARITIES: Rarity[] = ['common', 'rare', 'mythical', 'legendary'];
+
+function getAvailableRarities(level: number): Rarity[] {
+  return ALL_RARITIES.filter((r) => level >= RARITY_UNLOCK_LEVEL[r]);
 }
 
-function rollRarity(odds: Record<Rarity, number>): Rarity {
+function computeOdds(amount: number, availableRarities: Rarity[]): Partial<Record<Rarity, number>> {
+  const t = Math.max(0, Math.min(1, (amount - 25) / 475));
+  const base: Record<Rarity, number> = {
+    common: 70 - t * 45,
+    rare: 20 + t * 5,
+    mythical: 8 + t * 22,
+    legendary: 2 + t * 18,
+  };
+  const total = availableRarities.reduce((s, r) => s + base[r], 0);
+  const result: Partial<Record<Rarity, number>> = {};
+  availableRarities.forEach((r) => {
+    result[r] = Math.round((base[r] / total) * 100);
+  });
+  return result;
+}
+
+function rollRarity(odds: Partial<Record<Rarity, number>>, availableRarities: Rarity[]): Rarity {
   const roll = Math.random() * 100;
   let cumulative = 0;
-  for (const rarity of ['common', 'uncommon', 'rare', 'legendary'] as Rarity[]) {
-    cumulative += odds[rarity];
+  for (const rarity of availableRarities) {
+    cumulative += odds[rarity] ?? 0;
     if (roll < cumulative) return rarity;
   }
-  return 'common';
+  return availableRarities[0] ?? 'common';
 }
 
 export default function TossScreen() {
@@ -73,7 +85,8 @@ export default function TossScreen() {
     setUser(data as User | null);
   }
 
-  const odds = computeOdds(amount);
+  const availableRarities = getAvailableRarities(user?.fountain_level ?? 1);
+  const odds = computeOdds(amount, availableRarities);
   const canAfford = (user?.coin_balance ?? 0) >= amount;
 
   async function handleToss() {
@@ -83,7 +96,7 @@ export default function TossScreen() {
     const { data: { user: authUser } } = await supabase.auth.getUser();
     if (!authUser) { setTossing(false); return; }
 
-    const rolledRarity = rollRarity(odds);
+    const rolledRarity = rollRarity(odds, availableRarities);
 
     const { data: fairiesOfRarity } = await supabase
       .from('fairy_definitions')
@@ -208,19 +221,19 @@ export default function TossScreen() {
         {/* Rarity odds */}
         <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Text style={[styles.sectionLabel, { color: colors.icon }]}>SUMMON ODDS</Text>
-          {(['common', 'uncommon', 'rare', 'legendary'] as Rarity[]).map((rarity) => (
+          {availableRarities.map((rarity) => (
             <View key={rarity} style={styles.oddRow}>
               <Text style={[styles.oddLabel, { color: colors.text }]}>{RARITY_LABELS[rarity]}</Text>
               <View style={[styles.oddTrack, { backgroundColor: colors.background }]}>
                 <View style={[styles.oddFill, {
                   backgroundColor: rarity === 'legendary' ? colors.coin
-                    : rarity === 'rare' ? colors.tint
-                    : rarity === 'uncommon' ? colors.income
+                    : rarity === 'mythical' ? colors.tint
+                    : rarity === 'rare' ? colors.income
                     : colors.icon,
-                  width: `${odds[rarity]}%` as any,
+                  width: `${odds[rarity] ?? 0}%` as any,
                 }]} />
               </View>
-              <Text style={[styles.oddPct, { color: colors.icon }]}>{odds[rarity]}%</Text>
+              <Text style={[styles.oddPct, { color: colors.icon }]}>{odds[rarity] ?? 0}%</Text>
             </View>
           ))}
         </View>

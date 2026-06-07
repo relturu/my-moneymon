@@ -210,7 +210,7 @@ export default function FairyChatScreen() {
         </View>
         <Text style={[styles.fairyName, { color: colors.text }]}>{fairy.name}</Text>
         <Text style={[styles.fairyRarity, { color: colors.coin }]}>
-          {'★'.repeat({ common: 1, uncommon: 2, rare: 3, legendary: 4 }[fairy.rarity] ?? 1)}
+          {'★'.repeat({ common: 1, rare: 2, mythical: 3, legendary: 4 }[fairy.rarity] ?? 1)}
         </Text>
         <Text style={[styles.convoCount, { color: colors.icon }]}>
           {convoCount}/3 conversations this visit

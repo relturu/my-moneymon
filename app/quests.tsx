@@ -17,6 +17,13 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import type { QuestDefinition, UserQuest } from '@/types/database';
 
 type QuestWithStatus = QuestDefinition & { userQuest?: UserQuest };
+
+const QUEST_FINANCE_MAP: Record<string, { tab: string; hint: string }> = {
+  log_transactions: { tab: 'transactions', hint: 'Log a transaction to complete this quest ✨' },
+  log_income:       { tab: 'transactions', hint: 'Record income to complete this quest ✨' },
+  stay_under_budget:{ tab: 'budgets',      hint: 'Keep your spending under budget to complete this quest ✨' },
+  complete_goal:    { tab: 'overview',     hint: 'Review your financial overview to complete this quest ✨' },
+};
 type Period = 'daily' | 'weekly';
 
 function getWeekStart(): string {
@@ -82,6 +89,14 @@ export default function QuestsScreen() {
       quest_id: quest.id,
       period_start: periodStart,
     } as any);
+
+    if (quest.requirement_type) {
+      const map = QUEST_FINANCE_MAP[quest.requirement_type];
+      if (map) {
+        router.push({ pathname: '/(tabs)/finance', params: { tab: map.tab, hint: map.hint } } as any);
+        return;
+      }
+    }
 
     await load();
   }

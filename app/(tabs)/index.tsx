@@ -39,8 +39,8 @@ type MailboxVisit = FountainVisit & {
 
 const RARITY_STARS: Record<string, string> = {
   common: '★',
-  uncommon: '★★',
-  rare: '★★★',
+  rare: '★★',
+  mythical: '★★★',
   legendary: '★★★★',
 };
 

@@ -295,7 +295,7 @@ export interface Database {
         Row: {
           id: string;
           name: string;
-          rarity: 'common' | 'uncommon' | 'rare' | 'legendary';
+          rarity: 'common' | 'rare' | 'mythical' | 'legendary';
           lore: string | null;
           portrait_url: string | null;
           material_drop_type: string | null;
@@ -304,7 +304,7 @@ export interface Database {
         Insert: {
           id?: string;
           name: string;
-          rarity: 'common' | 'uncommon' | 'rare' | 'legendary';
+          rarity: 'common' | 'rare' | 'mythical' | 'legendary';
           lore?: string | null;
           portrait_url?: string | null;
           material_drop_type?: string | null;
@@ -313,7 +313,7 @@ export interface Database {
         Update: {
           id?: string;
           name?: string;
-          rarity?: 'common' | 'uncommon' | 'rare' | 'legendary';
+          rarity?: 'common' | 'rare' | 'mythical' | 'legendary';
           lore?: string | null;
           portrait_url?: string | null;
           material_drop_type?: string | null;
@@ -398,7 +398,7 @@ export interface Database {
           id: string;
           name: string;
           description: string | null;
-          rarity: 'common' | 'uncommon' | 'rare' | 'legendary';
+          rarity: 'common' | 'rare' | 'mythical' | 'legendary';
           xp_min: number;
           xp_max: number;
         };
@@ -406,7 +406,7 @@ export interface Database {
           id?: string;
           name: string;
           description?: string | null;
-          rarity: 'common' | 'uncommon' | 'rare' | 'legendary';
+          rarity: 'common' | 'rare' | 'mythical' | 'legendary';
           xp_min: number;
           xp_max: number;
         };
@@ -414,7 +414,7 @@ export interface Database {
           id?: string;
           name?: string;
           description?: string | null;
-          rarity?: 'common' | 'uncommon' | 'rare' | 'legendary';
+          rarity?: 'common' | 'rare' | 'mythical' | 'legendary';
           xp_min?: number;
           xp_max?: number;
         };
@@ -491,12 +491,12 @@ export type UserInventory = Database['public']['Tables']['user_inventory']['Row'
 export type FountainUpgrade = Database['public']['Tables']['fountain_upgrades']['Row'];
 
 // ── Rarity type ────────────────────────────────────────────────────────────────
-export type Rarity = 'common' | 'uncommon' | 'rare' | 'legendary';
+export type Rarity = 'common' | 'rare' | 'mythical' | 'legendary';
 
 // ── Coin cost by rarity (derived in code, not stored per fairy) ────────────────
 export const COIN_COST_BY_RARITY: Record<Rarity, number> = {
   common: 10,
-  uncommon: 25,
-  rare: 50,
+  rare: 25,
+  mythical: 50,
   legendary: 100,
 };

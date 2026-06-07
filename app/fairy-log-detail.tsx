@@ -16,15 +16,15 @@ type FairyDetail = FairyDefinition & {
 
 const RARITY_STARS: Record<string, string> = {
   common: '★',
-  uncommon: '★★',
-  rare: '★★★',
+  rare: '★★',
+  mythical: '★★★',
   legendary: '★★★★',
 };
 
 const RARITY_COLOR: Record<string, string> = {
   common: '#A8A29E',
-  uncommon: '#10B981',
-  rare: '#7C3AED',
+  rare: '#10B981',
+  mythical: '#7C3AED',
   legendary: '#F59E0B',
 };
 
