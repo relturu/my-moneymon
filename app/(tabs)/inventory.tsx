@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 12,
   },
-  title: { fontSize: 26, fontWeight: '700' },
+  title: { fontSize: 26, fontFamily: 'Kanchenjunga_700Bold' },
   wishBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
   },
-  wishText: { fontSize: 15, fontWeight: '700' },
+  wishText: { fontSize: 15, fontFamily: 'Kanchenjunga_700Bold' },
 
   list: { padding: 16, gap: 10, paddingBottom: 32 },
   empty: { flex: 1 },
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     marginLeft: 'auto',
     flexShrink: 0,
   },
-  badgeText: { fontSize: 13, fontWeight: '700' },
+  badgeText: { fontSize: 13, fontFamily: 'Kanchenjunga_700Bold' },
 
   materialIcon: {
     width: 60,
@@ -192,12 +192,12 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   materialInfo: { flex: 1, gap: 3 },
-  materialName: { fontSize: 15, fontWeight: '600' },
+  materialName: { fontSize: 15, fontFamily: 'Kanchenjunga_600SemiBold' },
   materialRarity: { fontSize: 12, fontWeight: '500' },
   materialDesc: { fontSize: 12, lineHeight: 16 },
 
   emptyContent: { alignItems: 'center', gap: 12, paddingTop: 80 },
   emptyEmoji: { fontSize: 48 },
-  emptyTitle: { fontSize: 18, fontWeight: '600' },
+  emptyTitle: { fontSize: 18, fontFamily: 'Kanchenjunga_600SemiBold' },
   emptyHint: { fontSize: 14, textAlign: 'center', paddingHorizontal: 32 },
 });

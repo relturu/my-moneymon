@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  title: { fontSize: 22, fontWeight: '700' },
+  title: { fontSize: 22, fontFamily: 'Kanchenjunga_700Bold' },
   wishBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
   },
-  wishText: { fontSize: 15, fontWeight: '700' },
+  wishText: { fontSize: 15, fontFamily: 'Kanchenjunga_700Bold' },
 
   list: { padding: 16, gap: 12, paddingBottom: 24 },
   emptyList: { flex: 1, justifyContent: 'center', alignItems: 'center' },
@@ -328,13 +328,13 @@ const styles = StyleSheet.create({
     padding: 6,
     flexShrink: 0,
   },
-  rewardText: { fontSize: 13, fontWeight: '700' },
+  rewardText: { fontSize: 13, fontFamily: 'Kanchenjunga_700Bold' },
   checkmark: { fontSize: 20, fontWeight: '700' },
 
   questInfo: { flex: 1, gap: 8 },
-  questTitle: { fontSize: 15, fontWeight: '600', lineHeight: 20 },
+  questTitle: { fontSize: 15, fontFamily: 'Kanchenjunga_600SemiBold', lineHeight: 20 },
   questDesc: { fontSize: 13, lineHeight: 18 },
-  statusText: { fontSize: 13, fontWeight: '600' },
+  statusText: { fontSize: 13, fontFamily: 'Kanchenjunga_600SemiBold' },
 
   completeButton: {
     alignSelf: 'flex-start',

@@ -545,7 +545,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   coinEmoji: { fontSize: 16 },
-  coinText: { fontSize: 16, fontWeight: '700', color: '#FCD34D' },
+  coinText: { fontSize: 16, fontFamily: 'Kanchenjunga_700Bold', color: '#FCD34D' },
   topIconBtn: {
     width: 44,
     height: 44,
@@ -579,7 +579,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   fairyBubbleEmoji: { fontSize: 16 },
-  fairyBubbleName: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  fairyBubbleName: { fontSize: 14, fontFamily: 'Kanchenjunga_700Bold', color: '#fff' },
 
   // Bottom overlay — white text info
   bottomOverlay: {
@@ -587,8 +587,8 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     gap: 6,
   },
-  fountainTitle: { fontSize: 22, fontWeight: '800', color: '#fff', textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
-  levelLabel: { fontSize: 15, fontWeight: '600', color: 'rgba(255,255,255,0.85)' },
+  fountainTitle: { fontSize: 22, fontFamily: 'Kanchenjunga_700Bold', color: '#fff', textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
+  levelLabel: { fontSize: 15, fontFamily: 'Kanchenjunga_600SemiBold', color: 'rgba(255,255,255,0.85)' },
   xpRow: { gap: 4, marginBottom: 4 },
   xpTrack: { height: 6, borderRadius: 3, overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.3)' },
   xpFill: { height: '100%', borderRadius: 3, backgroundColor: '#fff' },
@@ -601,9 +601,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 16,
   },
-  primaryButtonText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  primaryButtonText: { color: '#fff', fontSize: 17, fontFamily: 'Kanchenjunga_700Bold' },
   infoText: { fontSize: 13, color: 'rgba(255,255,255,0.85)', textAlign: 'center' },
-  timerText: { fontSize: 22, fontWeight: '800', color: '#fff', textAlign: 'center' },
+  timerText: { fontSize: 22, fontFamily: 'Kanchenjunga_700Bold', color: '#fff', textAlign: 'center' },
   devTestText: { fontSize: 12, color: 'rgba(255,255,255,0.55)', textAlign: 'center', textDecorationLine: 'underline' },
 
   // Bottom sheet
@@ -628,7 +628,7 @@ const styles = StyleSheet.create({
   },
   portraitEmoji: { fontSize: 32 },
   sheetHeaderInfo: { flex: 1, gap: 4 },
-  sheetFairyName: { fontSize: 22, fontWeight: '700' },
+  sheetFairyName: { fontSize: 22, fontFamily: 'Kanchenjunga_700Bold' },
   sheetRarity: { fontSize: 18 },
   sheetTimer: { fontSize: 13 },
 

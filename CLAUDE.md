@@ -146,6 +146,7 @@ hooks/
 
 ### Overview sub-tab
 - Shows income, expenses, net (format: `+$X.XX` / `-$X.XX` — never `$-X.XX`)
+- **"My Spending" section** — below net card: optional overall budget mini-bar, then a donut chart (`react-native-svg` stroke-dash) with category segments + legend. Empty state if no spending.
 - "Recent" = transactions from the last 7 days, with edit + delete buttons
 
 ### Transactions sub-tab
@@ -155,7 +156,7 @@ hooks/
 - Amount fields show `$` prefix; auto-format `.00` on blur
 
 ### Budgets sub-tab
-- **Overall spending limit** (optional) — budget with `category_id = NULL`, shown at top
+- **Overall spending limit** (optional) — budget with `category_id = NULL`, shown as `OverallBudgetHeroCard` (dark green hero card, thick progress bar, color-coded: sage/amber/red)
 - **Category budgets** — each card shows:
   - Category name + icon
   - Date range (e.g. `6/1/26–6/30/26`) derived from `start_date`/`end_date`
