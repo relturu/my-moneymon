@@ -6,18 +6,18 @@ import {
   FlatList,
   TouchableOpacity,
   Alert,
+  ImageBackground,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 import { supabase } from '@/lib/supabase';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { captureSnapshot } from '@/lib/admin';
 import type { QuestDefinition, UserQuest } from '@/types/database';
 
 type QuestWithStatus = QuestDefinition & { userQuest?: UserQuest };
+type Period = 'daily' | 'weekly';
 
 const QUEST_FINANCE_MAP: Record<string, { tab: string; hint: string }> = {
   log_transactions: { tab: 'transactions', hint: 'Log a transaction to complete this quest ✨' },
@@ -25,7 +25,6 @@ const QUEST_FINANCE_MAP: Record<string, { tab: string; hint: string }> = {
   stay_under_budget:{ tab: 'budgets',      hint: 'Keep your spending under budget to complete this quest ✨' },
   complete_goal:    { tab: 'overview',     hint: 'Review your financial overview to complete this quest ✨' },
 };
-type Period = 'daily' | 'weekly';
 
 function getWeekStart(): string {
   const now = new Date();
@@ -36,23 +35,17 @@ function getWeekStart(): string {
 }
 
 export default function QuestsScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
-
   const [period, setPeriod] = useState<Period>('daily');
   const [daily, setDaily] = useState<QuestWithStatus[]>([]);
   const [weekly, setWeekly] = useState<QuestWithStatus[]>([]);
   const [coinBalance, setCoinBalance] = useState(0);
   const [completing, setCompleting] = useState<string | null>(null);
 
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
   async function load() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-
     const { data: profile } = await supabase
       .from('users').select('coin_balance').eq('id', user.id).single();
     setCoinBalance((profile as any)?.coin_balance ?? 0);
@@ -80,17 +73,12 @@ export default function QuestsScreen() {
   async function acceptQuest(quest: QuestWithStatus) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-
     const periodStart = quest.quest_type === 'daily'
       ? new Date().toISOString().split('T')[0]
       : getWeekStart();
-
     await supabase.from('user_quests').insert({
-      user_id: user.id,
-      quest_id: quest.id,
-      period_start: periodStart,
+      user_id: user.id, quest_id: quest.id, period_start: periodStart,
     } as any);
-
     if (quest.requirement_type) {
       const map = QUEST_FINANCE_MAP[quest.requirement_type];
       if (map) {
@@ -98,13 +86,11 @@ export default function QuestsScreen() {
         return;
       }
     }
-
     await load();
   }
 
   async function completeQuest(quest: QuestWithStatus) {
     if (!quest.userQuest) return;
-
     Alert.alert(
       'Complete quest?',
       `Did you really complete: "${quest.title}"?\n\nYou'll earn ♥ ${quest.coin_reward} wishes.`,
@@ -116,34 +102,19 @@ export default function QuestsScreen() {
             setCompleting(quest.id);
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) { setCompleting(null); return; }
-
             await captureSnapshot(user.id);
-
             const now = new Date().toISOString();
-
-            await (supabase
-              .from('user_quests')
+            await (supabase.from('user_quests')
               .update({ completed_at: now, coins_earned: quest.coin_reward }) as any)
               .eq('id', quest.userQuest!.id);
-
             const { data: profile } = await supabase
               .from('users').select('coin_balance').eq('id', user.id).single();
-            const currentBalance = (profile as any)?.coin_balance ?? 0;
-            const newBalance = currentBalance + quest.coin_reward;
-
-            await (supabase
-              .from('users')
-              .update({ coin_balance: newBalance }) as any)
-              .eq('id', user.id);
-
+            const newBalance = ((profile as any)?.coin_balance ?? 0) + quest.coin_reward;
+            await (supabase.from('users').update({ coin_balance: newBalance }) as any).eq('id', user.id);
             await supabase.from('coin_transactions').insert({
-              user_id: user.id,
-              amount: quest.coin_reward,
-              source_type: 'quest',
-              source_id: quest.userQuest!.id,
-              description: `Completed: ${quest.title}`,
+              user_id: user.id, amount: quest.coin_reward, source_type: 'quest',
+              source_id: quest.userQuest!.id, description: `Completed: ${quest.title}`,
             } as any);
-
             setCoinBalance(newBalance);
             await load();
             setCompleting(null);
@@ -156,216 +127,245 @@ export default function QuestsScreen() {
   const quests = period === 'daily' ? daily : weekly;
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <ImageBackground
+      source={require('@/assets/images/home-background.png')}
+      style={styles.bg}
+      resizeMode="cover"
+    >
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
 
-      {/* Top bar */}
-      <View style={styles.topBar}>
-        <TouchableOpacity
-          style={[styles.backButton, { backgroundColor: colors.card, borderColor: colors.border }]}
-          onPress={() => router.back()}>
-          <IconSymbol size={20} name="arrow.left" color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Daily Goals</Text>
-        <View style={[styles.wishBadge, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <IconSymbol size={16} name="heart.fill" color={colors.coin} />
-          <Text style={[styles.wishText, { color: colors.coin }]}>{coinBalance}</Text>
+        {/* Coin badge on background */}
+        <View style={styles.topArea}>
+          <View style={styles.coinBadge}>
+            <IconSymbol size={15} name="heart.fill" color="#FCD34D" />
+            <Text style={styles.coinText}>{coinBalance}</Text>
+          </View>
         </View>
-      </View>
 
-      <FlatList
-        data={quests}
-        keyExtractor={(q) => q.id}
-        contentContainerStyle={[styles.list, quests.length === 0 && styles.emptyList]}
-        ListEmptyComponent={
-          <Text style={[styles.emptyText, { color: colors.icon }]}>
-            No {period} quests available
-          </Text>
-        }
-        renderItem={({ item: q }) => {
-          const accepted = !!q.userQuest;
-          const completed = !!q.userQuest?.completed_at;
-          const isCompleting = completing === q.id;
+        {/* Main panel */}
+        <View style={styles.panel}>
+          <View style={styles.handle} />
 
-          return (
-            <View style={[
-              styles.card,
-              {
-                backgroundColor: completed
-                  ? colors.background
-                  : colors.card,
-                borderColor: completed ? colors.border : colors.border,
-                opacity: completed ? 0.7 : 1,
-              },
-            ]}>
-              {/* Reward chip */}
-              <View style={[
-                styles.rewardChip,
-                { backgroundColor: completed ? colors.background : colors.card, borderColor: colors.border },
-              ]}>
-                {completed ? (
-                  <Text style={[styles.checkmark, { color: colors.income }]}>✓</Text>
-                ) : (
-                  <>
-                    <IconSymbol size={14} name="heart.fill" color={colors.coin} />
-                    <Text style={[styles.rewardText, { color: colors.coin }]}>{q.coin_reward}</Text>
-                  </>
-                )}
-              </View>
+          {/* Panel header */}
+          <View style={styles.panelHeader}>
+            <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+              <IconSymbol size={20} name="arrow.left" color="#fff" />
+            </TouchableOpacity>
+            <Text style={styles.panelTitle}>Daily Goals</Text>
+          </View>
 
-              {/* Quest info */}
-              <View style={styles.questInfo}>
-                <Text style={[
-                  styles.questTitle,
-                  {
-                    color: completed ? colors.icon : colors.text,
-                    textDecorationLine: completed ? 'line-through' : 'none',
-                  },
-                ]}>
-                  {q.title}
+          {/* Daily / Weekly toggle */}
+          <View style={styles.toggle}>
+            {(['daily', 'weekly'] as Period[]).map((p) => (
+              <TouchableOpacity
+                key={p}
+                style={[styles.toggleBtn, period === p && styles.toggleBtnActive]}
+                onPress={() => setPeriod(p)}>
+                <Text style={[styles.toggleText, { color: period === p ? '#fff' : 'rgba(255,255,255,0.5)' }]}>
+                  {p.charAt(0).toUpperCase() + p.slice(1)}
                 </Text>
-                {q.description ? (
-                  <Text style={[styles.questDesc, { color: colors.icon }]}>{q.description}</Text>
-                ) : null}
+              </TouchableOpacity>
+            ))}
+          </View>
 
-                {completed ? (
-                  <Text style={[styles.statusText, { color: colors.income }]}>✓ Completed</Text>
-                ) : accepted ? (
-                  <TouchableOpacity
-                    style={[styles.completeButton, { backgroundColor: colors.tint }]}
-                    onPress={() => completeQuest(q)}
-                    disabled={isCompleting}>
-                    <Text style={styles.completeButtonText}>
-                      {isCompleting ? 'Completing...' : 'Mark Complete'}
-                    </Text>
-                  </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity
-                    style={[styles.acceptButton, { borderColor: colors.tint }]}
-                    onPress={() => acceptQuest(q)}>
-                    <Text style={[styles.acceptText, { color: colors.tint }]}>Accept</Text>
-                  </TouchableOpacity>
-                )}
+          <FlatList
+            data={quests}
+            keyExtractor={(q) => q.id}
+            contentContainerStyle={[styles.list, quests.length === 0 && styles.listEmpty]}
+            showsVerticalScrollIndicator={false}
+            ItemSeparatorComponent={() => <View style={styles.divider} />}
+            ListEmptyComponent={
+              <View style={styles.emptyContent}>
+                <Text style={styles.emptyEmoji}>📜</Text>
+                <Text style={styles.emptyTitle}>No {period} quests</Text>
+                <Text style={styles.emptyHint}>Check back soon for new goals</Text>
               </View>
-            </View>
-          );
-        }}
-      />
+            }
+            renderItem={({ item: q }) => {
+              const accepted = !!q.userQuest;
+              const completed = !!q.userQuest?.completed_at;
+              const isCompleting = completing === q.id;
 
-      {/* Period switcher (bottom) */}
-      <View style={[styles.periodBar, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <TouchableOpacity
-          style={[styles.periodBtn, period === 'daily' && { backgroundColor: colors.tint }]}
-          onPress={() => setPeriod('daily')}>
-          <Text style={[styles.periodBtnText, { color: period === 'daily' ? '#fff' : colors.icon }]}>
-            Daily
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.periodBtn, period === 'weekly' && { backgroundColor: colors.tint }]}
-          onPress={() => setPeriod('weekly')}>
-          <Text style={[styles.periodBtnText, { color: period === 'weekly' ? '#fff' : colors.icon }]}>
-            Weekly
-          </Text>
-        </TouchableOpacity>
-      </View>
+              return (
+                <View style={[styles.card, completed && styles.cardDone]}>
+                  {/* Reward chip */}
+                  <View style={[styles.rewardChip, completed && styles.rewardChipDone]}>
+                    {completed ? (
+                      <Text style={styles.checkmark}>✓</Text>
+                    ) : (
+                      <>
+                        <IconSymbol size={14} name="heart.fill" color="#FCD34D" />
+                        <Text style={styles.rewardText}>{q.coin_reward}</Text>
+                      </>
+                    )}
+                  </View>
 
-    </SafeAreaView>
+                  {/* Quest info */}
+                  <View style={styles.questInfo}>
+                    <Text style={[styles.questTitle, completed && styles.questTitleDone]}>
+                      {q.title}
+                    </Text>
+                    {q.description ? (
+                      <Text style={styles.questDesc}>{q.description}</Text>
+                    ) : null}
+                    {completed ? (
+                      <Text style={styles.completedLabel}>✓ Completed</Text>
+                    ) : accepted ? (
+                      <TouchableOpacity
+                        style={styles.completeBtn}
+                        onPress={() => completeQuest(q)}
+                        disabled={isCompleting}>
+                        <Text style={styles.completeBtnText}>
+                          {isCompleting ? 'Completing...' : 'Mark Complete'}
+                        </Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.acceptBtn}
+                        onPress={() => acceptQuest(q)}>
+                        <Text style={styles.acceptBtnText}>Accept</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              );
+            }}
+          />
+        </View>
+
+      </SafeAreaView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  bg: { flex: 1 },
   safeArea: { flex: 1 },
 
-  topBar: {
+  topArea: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    justifyContent: 'flex-end',
     paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 12,
+    paddingTop: 6,
+    paddingBottom: 20,
   },
-  backButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: { fontSize: 22, fontFamily: 'Kanchenjunga_700Bold' },
-  wishBadge: {
+  coinBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    borderRadius: 20,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
   },
-  wishText: { fontSize: 15, fontFamily: 'Kanchenjunga_700Bold' },
+  coinText: { fontSize: 15, fontFamily: 'Kanchenjunga_700Bold', color: '#FCD34D' },
 
-  list: { padding: 16, gap: 12, paddingBottom: 24 },
-  emptyList: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyText: { fontSize: 15 },
+  panel: {
+    flex: 1,
+    backgroundColor: '#2A3E34',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingTop: 12,
+  },
+  handle: {
+    width: 40, height: 4, borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    alignSelf: 'center',
+    marginBottom: 14,
+  },
+  panelHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  backBtn: {
+    width: 40, height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  panelTitle: {
+    fontSize: 28,
+    fontFamily: 'Kanchenjunga_700Bold',
+    color: '#fff',
+  },
+
+  toggle: {
+    flexDirection: 'row',
+    marginHorizontal: 20,
+    marginBottom: 16,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 12,
+    padding: 3,
+    gap: 3,
+  },
+  toggleBtn: {
+    flex: 1,
+    paddingVertical: 9,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  toggleBtnActive: { backgroundColor: 'rgba(255,255,255,0.18)' },
+  toggleText: { fontSize: 14, fontFamily: 'Kanchenjunga_600SemiBold' },
+
+  list: { paddingHorizontal: 20, paddingBottom: 32, paddingTop: 4 },
+  listEmpty: { flex: 1 },
+  divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginVertical: 12 },
 
   card: {
     flexDirection: 'row',
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 14,
-    gap: 12,
     alignItems: 'flex-start',
+    gap: 14,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 16,
+    padding: 14,
   },
+  cardDone: { backgroundColor: 'rgba(16,185,129,0.12)' },
+
   rewardChip: {
-    width: 52,
-    minHeight: 52,
+    width: 54, minHeight: 54,
     borderRadius: 14,
-    borderWidth: 1.5,
+    backgroundColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
-    flexDirection: 'column',
-    gap: 2,
+    gap: 3,
     padding: 6,
     flexShrink: 0,
   },
-  rewardText: { fontSize: 13, fontFamily: 'Kanchenjunga_700Bold' },
-  checkmark: { fontSize: 20, fontWeight: '700' },
+  rewardChipDone: { backgroundColor: 'rgba(16,185,129,0.2)' },
+  rewardText: { fontSize: 14, fontFamily: 'Kanchenjunga_700Bold', color: '#FCD34D' },
+  checkmark: { fontSize: 22, color: '#10B981' },
 
-  questInfo: { flex: 1, gap: 8 },
-  questTitle: { fontSize: 15, fontFamily: 'Kanchenjunga_600SemiBold', lineHeight: 20 },
-  questDesc: { fontSize: 13, lineHeight: 18 },
-  statusText: { fontSize: 13, fontFamily: 'Kanchenjunga_600SemiBold' },
+  questInfo: { flex: 1, gap: 6 },
+  questTitle: { fontSize: 16, fontFamily: 'Kanchenjunga_600SemiBold', color: '#fff', lineHeight: 22 },
+  questTitleDone: { color: 'rgba(255,255,255,0.45)', textDecorationLine: 'line-through' },
+  questDesc: { fontSize: 13, color: 'rgba(255,255,255,0.55)', lineHeight: 18 },
+  completedLabel: { fontSize: 13, fontFamily: 'Kanchenjunga_600SemiBold', color: '#10B981' },
 
-  completeButton: {
+  completeBtn: {
     alignSelf: 'flex-start',
+    backgroundColor: 'rgba(124,58,237,0.7)',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 8,
   },
-  completeButtonText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  completeBtnText: { color: '#fff', fontSize: 13, fontFamily: 'Kanchenjunga_600SemiBold' },
 
-  acceptButton: {
+  acceptBtn: {
     alignSelf: 'flex-start',
     borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.3)',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 8,
   },
-  acceptText: { fontSize: 13, fontWeight: '600' },
+  acceptBtnText: { color: 'rgba(255,255,255,0.8)', fontSize: 13, fontFamily: 'Kanchenjunga_600SemiBold' },
 
-  periodBar: {
-    flexDirection: 'row',
-    margin: 16,
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 4,
-    gap: 4,
-  },
-  periodBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  periodBtnText: { fontSize: 15, fontWeight: '600' },
+  emptyContent: { alignItems: 'center', gap: 12, paddingTop: 60 },
+  emptyEmoji: { fontSize: 48 },
+  emptyTitle: { fontSize: 18, fontFamily: 'Kanchenjunga_600SemiBold', color: '#fff' },
+  emptyHint: { fontSize: 14, textAlign: 'center', paddingHorizontal: 32, color: 'rgba(255,255,255,0.6)' },
 });

@@ -6,13 +6,12 @@ import {
   FlatList,
   TouchableOpacity,
   useWindowDimensions,
+  ImageBackground,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 
 import { supabase } from '@/lib/supabase';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { getDevTest, setDevTest } from '@/lib/dev-test';
 import { useNotifs } from '@/lib/notifications';
@@ -24,8 +23,6 @@ type FairyEntry = FairyDefinition & {
 };
 
 export default function FairyLogScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const colors = Colors[colorScheme];
   const { width } = useWindowDimensions();
 
   const [fairies, setFairies] = useState<FairyEntry[]>([]);
@@ -113,18 +110,15 @@ export default function FairyLogScreen() {
 
   function renderFairyCard(fairy: FairyEntry | undefined) {
     if (!fairy) {
-      // Empty placeholder to keep 2x2 grid aligned
       return <View style={styles.card} />;
     }
     return (
       <TouchableOpacity
         style={[
           styles.card,
-          {
-            backgroundColor: fairy.discovered ? colors.card : colors.background,
-            borderColor: colors.border,
-            opacity: fairy.discovered ? 1 : 0.65,
-          },
+          fairy.discovered
+            ? { backgroundColor: 'rgba(255,255,255,0.10)', borderColor: 'rgba(255,255,255,0.15)' }
+            : { backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.10)', opacity: 0.65 },
         ]}
         onPress={() => {
           if (fairy.discovered) {
@@ -135,10 +129,7 @@ export default function FairyLogScreen() {
 
         <View style={[
           styles.portrait,
-          {
-            backgroundColor: fairy.discovered ? colors.background : colors.border,
-            borderColor: colors.border,
-          },
+          { backgroundColor: fairy.discovered ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.12)' },
         ]}>
           {fairy.discovered
             ? <Text style={styles.portraitEmoji}>✨</Text>
@@ -146,7 +137,7 @@ export default function FairyLogScreen() {
         </View>
 
         <Text
-          style={[styles.fairyName, { color: fairy.discovered ? colors.text : colors.icon }]}
+          style={[styles.fairyName, { color: fairy.discovered ? '#fff' : 'rgba(255,255,255,0.4)' }]}
           numberOfLines={1}>
           {fairy.discovered ? fairy.name : '???'}
         </Text>
@@ -155,125 +146,151 @@ export default function FairyLogScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <ImageBackground
+      source={require('@/assets/images/home-background.png')}
+      style={styles.bg}
+      resizeMode="cover"
+    >
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
 
-      {/* Top bar */}
-      <View style={styles.topBar}>
-        <Text style={[styles.title, { color: colors.text }]}>Fairy Log</Text>
-        <View style={styles.topBarRight}>
-          <View style={[styles.wishBadge, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <IconSymbol size={16} name="heart.fill" color={colors.coin} />
-            <Text style={[styles.wishText, { color: colors.coin }]}>{coinBalance}</Text>
+        {/* Coin badge on background */}
+        <View style={styles.topArea}>
+          <View style={styles.coinBadge}>
+            <IconSymbol size={15} name="heart.fill" color="#FCD34D" />
+            <Text style={styles.coinText}>{coinBalance}</Text>
           </View>
-          <TouchableOpacity
-            style={[styles.closeBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
-            onPress={() => router.back()}>
-            <IconSymbol size={18} name="xmark" color={colors.text} />
-          </TouchableOpacity>
         </View>
-      </View>
 
-      {/* Horizontal paged list — 4 fairies per page in 2×2 grid */}
-      <FlatList
-        ref={listRef}
-        data={pages}
-        keyExtractor={(_, i) => String(i)}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        style={styles.pager}
-        onMomentumScrollEnd={(e) => {
-          const page = Math.round(e.nativeEvent.contentOffset.x / width);
-          setCurrentPage(page);
-        }}
-        renderItem={({ item: pageFairies }) => (
-          <View style={[styles.page, { width }]}>
-            <View style={styles.gridRow}>
-              {renderFairyCard(pageFairies[0])}
-              {renderFairyCard(pageFairies[1])}
-            </View>
-            <View style={styles.gridRow}>
-              {renderFairyCard(pageFairies[2])}
-              {renderFairyCard(pageFairies[3])}
-            </View>
-          </View>
-        )}
-      />
+        {/* Main panel */}
+        <View style={styles.panel}>
+          <View style={styles.handle} />
 
-      {/* Bottom bar: Prev | dots | Next */}
-      <View style={[styles.bottomBar, { borderTopColor: colors.border }]}>
-        <TouchableOpacity
-          style={[
-            styles.navBtn,
-            { backgroundColor: colors.card, borderColor: colors.border },
-            currentPage === 0 && styles.navBtnDisabled,
-          ]}
-          onPress={() => goToPage(currentPage - 1)}
-          disabled={currentPage === 0}>
-          <IconSymbol size={16} name="arrow.left" color={currentPage === 0 ? colors.icon : colors.text} />
-          <Text style={[styles.navBtnText, { color: currentPage === 0 ? colors.icon : colors.text }]}>Prev</Text>
-        </TouchableOpacity>
-
-        <View style={styles.dots}>
-          {pages.map((_, i) => (
-            <TouchableOpacity key={i} onPress={() => goToPage(i)}>
-              <View style={[styles.dot, { backgroundColor: i === currentPage ? colors.tint : colors.border }]} />
+          {/* Panel header */}
+          <View style={styles.panelHeader}>
+            <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+              <IconSymbol size={20} name="arrow.left" color="#fff" />
             </TouchableOpacity>
-          ))}
+            <Text style={styles.panelTitle}>Fairy Log</Text>
+          </View>
+
+          {/* Horizontal paged list — 4 fairies per page in 2×2 grid */}
+          <FlatList
+            ref={listRef}
+            data={pages}
+            keyExtractor={(_, i) => String(i)}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            style={styles.pager}
+            onMomentumScrollEnd={(e) => {
+              const page = Math.round(e.nativeEvent.contentOffset.x / width);
+              setCurrentPage(page);
+            }}
+            renderItem={({ item: pageFairies }) => (
+              <View style={[styles.page, { width }]}>
+                <View style={styles.gridRow}>
+                  {renderFairyCard(pageFairies[0])}
+                  {renderFairyCard(pageFairies[1])}
+                </View>
+                <View style={styles.gridRow}>
+                  {renderFairyCard(pageFairies[2])}
+                  {renderFairyCard(pageFairies[3])}
+                </View>
+              </View>
+            )}
+          />
+
+          {/* Bottom bar: Prev | dots | Next */}
+          <View style={styles.bottomBar}>
+            <TouchableOpacity
+              style={[styles.navBtn, currentPage === 0 && styles.navBtnDisabled]}
+              onPress={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 0}>
+              <IconSymbol size={16} name="arrow.left" color="#fff" />
+              <Text style={styles.navBtnText}>Prev</Text>
+            </TouchableOpacity>
+
+            <View style={styles.dots}>
+              {pages.map((_, i) => (
+                <TouchableOpacity key={i} onPress={() => goToPage(i)}>
+                  <View style={[styles.dot, { backgroundColor: i === currentPage ? '#fff' : 'rgba(255,255,255,0.3)' }]} />
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <TouchableOpacity
+              style={[styles.navBtn, currentPage >= totalPages - 1 && styles.navBtnDisabled]}
+              onPress={() => goToPage(currentPage + 1)}
+              disabled={currentPage >= totalPages - 1}>
+              <Text style={styles.navBtnText}>Next</Text>
+              <IconSymbol size={16} name="chevron.right" color="#fff" />
+            </TouchableOpacity>
+          </View>
+
         </View>
 
-        <TouchableOpacity
-          style={[
-            styles.navBtn,
-            { backgroundColor: colors.card, borderColor: colors.border },
-            currentPage >= totalPages - 1 && styles.navBtnDisabled,
-          ]}
-          onPress={() => goToPage(currentPage + 1)}
-          disabled={currentPage >= totalPages - 1}>
-          <Text style={[styles.navBtnText, { color: currentPage >= totalPages - 1 ? colors.icon : colors.text }]}>Next</Text>
-          <IconSymbol size={16} name="chevron.right" color={currentPage >= totalPages - 1 ? colors.icon : colors.text} />
-        </TouchableOpacity>
-      </View>
-
-    </SafeAreaView>
+      </SafeAreaView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  bg: { flex: 1 },
   safeArea: { flex: 1 },
 
-  topBar: {
+  topArea: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    justifyContent: 'flex-end',
     paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 8,
+    paddingTop: 6,
+    paddingBottom: 20,
   },
-  title: { fontSize: 24, fontFamily: 'Kanchenjunga_700Bold' },
-  topBarRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  closeBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  wishBadge: {
+  coinBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    borderRadius: 20,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
   },
-  wishText: { fontSize: 15, fontFamily: 'Kanchenjunga_700Bold' },
+  coinText: { fontSize: 15, fontFamily: 'Kanchenjunga_700Bold', color: '#FCD34D' },
+
+  panel: {
+    flex: 1,
+    backgroundColor: '#2A3E34',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingTop: 12,
+  },
+  handle: {
+    width: 40, height: 4, borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    alignSelf: 'center',
+    marginBottom: 14,
+  },
+  panelHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingHorizontal: 20,
+    marginBottom: 8,
+  },
+  backBtn: {
+    width: 40, height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  panelTitle: {
+    fontSize: 28,
+    fontFamily: 'Kanchenjunga_700Bold',
+    color: '#fff',
+  },
 
   pager: { flex: 1 },
 
-  // Each page is the full screen width, 2×2 grid
   page: {
     flex: 1,
     padding: 16,
@@ -298,14 +315,12 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     borderRadius: 12,
-    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   portraitEmoji: { fontSize: 40 },
   fairyName: { fontSize: 15, fontFamily: 'Kanchenjunga_600SemiBold', textAlign: 'center' },
 
-  // Bottom navigation
   bottomBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -313,6 +328,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.08)',
   },
   dots: {
     flexDirection: 'row',
@@ -329,10 +345,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     borderRadius: 12,
-    borderWidth: 1,
+    backgroundColor: 'rgba(255,255,255,0.12)',
     paddingHorizontal: 16,
     paddingVertical: 10,
   },
   navBtnDisabled: { opacity: 0.4 },
-  navBtnText: { fontSize: 15, fontWeight: '600' },
+  navBtnText: { fontSize: 15, fontWeight: '600', color: '#fff' },
 });
