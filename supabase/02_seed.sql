@@ -48,17 +48,12 @@ INSERT INTO materials (name, description, rarity, xp_min, xp_max) VALUES
 -- ============================================================
 -- Fairy Definitions
 -- ============================================================
-INSERT INTO fairy_definitions (name, rarity, lore, material_drop_type, visit_duration_hours) VALUES
-  ('Lumina',    'common',    'A gentle fairy of morning light who loves dewy meadows.',     'Dewdrop',        12),
-  ('Pebble',    'common',    'A earthy fairy who collects smooth stones from riverbeds.',   'Pebble',         12),
-  ('Clovie',    'common',    'Brings small bits of luck to those who budget wisely.',       'Clover Leaf',    12),
-  ('Zephyr',    'uncommon',  'A wind fairy who drifts in on warm breezes.',                'Feather',        18),
-  ('Luna',      'uncommon',  'A night fairy who only appears when the moon is bright.',    'Moonstone Shard',18),
-  ('Pixella',   'uncommon',  'Mischievous and glittery. Leaves trails of sparkling dust.', 'Pixie Dust',     18),
-  ('Stellara',  'rare',      'Born from a falling star, she brings fortune and wonder.',   'Star Fragment',  24),
-  ('Flora',     'rare',      'An ancient fairy who tends enchanted gardens.',              'Enchanted Bloom', 24),
-  ('Iris',      'legendary', 'A legendary fairy who bends light itself. Rarely seen.',     'Prism Crystal',  48),
-  ('Aethon',    'legendary', 'The eldest fairy. Said to be woven from the fabric of magic.','Aether Essence', 48);
+INSERT INTO fairy_definitions (name, rarity, lore, material_drop_type, portrait_url, visit_duration_hours) VALUES
+  ('Webster', 'common',    'A quiet, dark-cloaked fairy who lingers near mossy stones and still water.',        'Dewdrop',       'webster',  12),
+  ('Felicity','common',    'A cheery fairy in a blue coat who brings good luck to careful spenders.',           'Clover Leaf',   'felicity', 12),
+  ('Mallow',  'uncommon',  'A soft-spoken fairy with big ears who loves warm places and cozy things.',          'Feather',       'mallow',   18),
+  ('Pepper',  'rare',      'A fiery red-haired fairy who visits in bursts of energy. Hard to catch.',          'Star Fragment', 'pepper',   24),
+  ('Pearl',   'legendary', 'A serene fairy of the deep tide. She appears only to the most devoted fountains.', 'Prism Crystal', null,       48);
 
 -- ============================================================
 -- Quest Definitions

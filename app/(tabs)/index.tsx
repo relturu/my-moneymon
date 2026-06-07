@@ -202,7 +202,7 @@ export default function FountainScreen() {
 
     // Pick a random fairy that has a material drop
     const { data: fairiesData } = await supabase
-      .from('fairy_definitions').select('*').not('material_drop_type', 'is', null);
+      .from('fairy_definitions').select('*').not('material_drop_type', 'is', null).not('portrait_url', 'is', null);
     const fairies = (fairiesData as FairyDefinition[] | null) ?? [];
     if (fairies.length === 0) return;
     const fairy = fairies[Math.floor(Math.random() * fairies.length)];
@@ -385,7 +385,7 @@ export default function FountainScreen() {
                   <TouchableOpacity
                     style={[styles.primaryButton, { backgroundColor: canChat(activeFairy) ? colors.tint : 'rgba(255,255,255,0.25)' }]}
                     onPress={() => canChat(activeFairy)
-                      ? router.push(`/fairy-chat?visitId=${activeFairy.id}` as any)
+                      ? router.push(`/fairy-chat?visitId=${activeFairy.id}&convoIndex=${activeFairy.convo_count ?? 0}` as any)
                       : setSheetOpen(true)}>
                     <Text style={styles.primaryButtonText}>
                       {canChat(activeFairy) ? `Talk to ${activeFairy.fairy.name}` : `Visit ${activeFairy.fairy.name}`}
@@ -473,7 +473,7 @@ export default function FountainScreen() {
                   ]}
                   onPress={() => {
                     setSheetOpen(false);
-                    router.push(`/fairy-chat?visitId=${activeFairy.id}` as any);
+                    router.push(`/fairy-chat?visitId=${activeFairy.id}&convoIndex=${activeFairy.convo_count ?? 0}` as any);
                   }}
                   disabled={!canChat(activeFairy)}>
                   <Text style={[styles.patButtonText, { color: canChat(activeFairy) ? '#fff' : colors.icon }]}>

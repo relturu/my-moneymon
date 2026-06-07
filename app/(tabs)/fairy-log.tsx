@@ -7,7 +7,15 @@ import {
   TouchableOpacity,
   useWindowDimensions,
   ImageBackground,
+  Image,
 } from 'react-native';
+
+const FAIRY_PORTRAITS: Record<string, any> = {
+  felicity: require('@/assets/images/felicity.png'),
+  mallow:   require('@/assets/images/mallow.png'),
+  pepper:   require('@/assets/images/pepper.png'),
+  webster:  require('@/assets/images/webster.png'),
+};
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 
@@ -131,9 +139,9 @@ export default function FairyLogScreen() {
           styles.portrait,
           { backgroundColor: fairy.discovered ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.12)' },
         ]}>
-          {fairy.discovered
-            ? <Text style={styles.portraitEmoji}>✨</Text>
-            : <Text style={styles.portraitEmoji}>🥚</Text>}
+          {fairy.discovered && fairy.portrait_url && FAIRY_PORTRAITS[fairy.portrait_url]
+            ? <Image source={FAIRY_PORTRAITS[fairy.portrait_url]} style={{ width: '85%', height: '85%' }} resizeMode="contain" />
+            : <Text style={styles.portraitEmoji}>{fairy.discovered ? '✨' : '🥚'}</Text>}
         </View>
 
         <Text
