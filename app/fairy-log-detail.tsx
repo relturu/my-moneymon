@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+
+const FAIRY_PORTRAITS: Record<string, any> = {
+  felicity: require('@/assets/images/felicity.png'),
+  mallow:   require('@/assets/images/mallow.png'),
+  pepper:   require('@/assets/images/pepper.png'),
+  webster:  require('@/assets/images/webster.png'),
+};
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 
@@ -154,7 +161,9 @@ export default function FairyLogDetailScreen() {
 
           {/* Portrait */}
           <View style={[styles.portrait, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Text style={styles.portraitEmoji}>✨</Text>
+            {fairy.portrait_url && FAIRY_PORTRAITS[fairy.portrait_url]
+              ? <Image source={FAIRY_PORTRAITS[fairy.portrait_url]} style={{ width: '90%', height: '90%' }} resizeMode="contain" />
+              : <Text style={styles.portraitEmoji}>✨</Text>}
           </View>
         </View>
 
