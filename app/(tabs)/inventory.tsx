@@ -93,9 +93,7 @@ export default function InventoryScreen() {
       <FlatList
         data={items}
         keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={[styles.grid, items.length === 0 && styles.empty]}
-        columnWrapperStyle={styles.row}
+        contentContainerStyle={[styles.list, items.length === 0 && styles.empty]}
         ListEmptyComponent={
           <View style={styles.emptyContent}>
             <Text style={styles.emptyEmoji}>🌿</Text>
@@ -110,27 +108,30 @@ export default function InventoryScreen() {
           const rarityColor = RARITY_COLOR[rarity] ?? colors.icon;
           return (
             <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              {/* Quantity badge */}
-              <View style={[styles.badge, { backgroundColor: rarityColor }]}>
-                <Text style={styles.badgeText}>×{item.quantity}</Text>
-              </View>
-
-              {/* Material icon placeholder */}
+              {/* Material icon — left side */}
               <View style={[styles.materialIcon, { backgroundColor: colors.background, borderColor: colors.border }]}>
                 <IconSymbol size={28} name="drop.fill" color={rarityColor} />
               </View>
 
-              <Text style={[styles.materialName, { color: colors.text }]} numberOfLines={1}>
-                {item.material?.name ?? 'Material'}
-              </Text>
-              <Text style={[styles.materialRarity, { color: rarityColor }]}>
-                {rarity.charAt(0).toUpperCase() + rarity.slice(1)}
-              </Text>
-              {item.material?.description ? (
-                <Text style={[styles.materialDesc, { color: colors.icon }]} numberOfLines={2}>
-                  {item.material.description}
+              {/* Info — right side */}
+              <View style={styles.materialInfo}>
+                <Text style={[styles.materialName, { color: colors.text }]} numberOfLines={1}>
+                  {item.material?.name ?? 'Material'}
                 </Text>
-              ) : null}
+                <Text style={[styles.materialRarity, { color: rarityColor }]}>
+                  {rarity.charAt(0).toUpperCase() + rarity.slice(1)}
+                </Text>
+                {item.material?.description ? (
+                  <Text style={[styles.materialDesc, { color: colors.icon }]} numberOfLines={2}>
+                    {item.material.description}
+                  </Text>
+                ) : null}
+              </View>
+
+              {/* Quantity badge — right */}
+              <View style={[styles.badge, { backgroundColor: colors.border }]}>
+                <Text style={[styles.badgeText, { color: colors.text }]}>x{item.quantity}</Text>
+              </View>
             </View>
           );
         }}
@@ -161,38 +162,36 @@ const styles = StyleSheet.create({
   },
   wishText: { fontSize: 15, fontWeight: '700' },
 
-  grid: { padding: 16, gap: 12 },
-  row: { gap: 12 },
+  list: { padding: 16, gap: 10, paddingBottom: 32 },
   empty: { flex: 1 },
 
   card: {
-    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     borderRadius: 16,
     borderWidth: 1,
-    padding: 14,
-    gap: 6,
-    position: 'relative',
+    padding: 12,
+    gap: 14,
   },
   badge: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
     borderRadius: 10,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    zIndex: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginLeft: 'auto',
+    flexShrink: 0,
   },
-  badgeText: { color: '#fff', fontSize: 11, fontWeight: '700' },
+  badgeText: { fontSize: 13, fontWeight: '700' },
 
   materialIcon: {
-    width: 56,
-    height: 56,
+    width: 60,
+    height: 60,
     borderRadius: 14,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 4,
+    flexShrink: 0,
   },
+  materialInfo: { flex: 1, gap: 3 },
   materialName: { fontSize: 15, fontWeight: '600' },
   materialRarity: { fontSize: 12, fontWeight: '500' },
   materialDesc: { fontSize: 12, lineHeight: 16 },

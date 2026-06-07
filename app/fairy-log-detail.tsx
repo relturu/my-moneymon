@@ -14,13 +14,6 @@ type FairyDetail = FairyDefinition & {
   dropMaterial: Material | null;
 };
 
-const RARITY_STARS: Record<string, string> = {
-  common: '★',
-  rare: '★★',
-  mythical: '★★★',
-  legendary: '★★★★',
-};
-
 const RARITY_COLOR: Record<string, string> = {
   common: '#A8A29E',
   rare: '#10B981',
@@ -38,6 +31,7 @@ export default function FairyLogDetailScreen() {
   const [fairy, setFairy] = useState<FairyDetail | null>(null);
   const [allFairyIds, setAllFairyIds] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [coinBalance, setCoinBalance] = useState(0);
 
   useEffect(() => {
     if (id) loadFairy(id);
@@ -45,6 +39,10 @@ export default function FairyLogDetailScreen() {
 
   async function loadFairy(fairyId: string) {
     const { data: { user } } = await supabase.auth.getUser();
+
+    const { data: profile } = await supabase
+      .from('users').select('coin_balance').eq('id', user?.id ?? '').single();
+    setCoinBalance((profile as any)?.coin_balance ?? 0);
 
     const { data: fairyData } = await supabase
       .from('fairy_definitions')
@@ -78,7 +76,6 @@ export default function FairyLogDetailScreen() {
 
     setFairy({ ...f, collection, dropMaterial });
 
-    // Only navigate between DISCOVERED fairies
     if (user) {
       const { data: discoveredCol } = await supabase
         .from('user_fairy_collection')
@@ -91,7 +88,6 @@ export default function FairyLogDetailScreen() {
     }
   }
 
-  // Load in-place — no navigation, so no animation direction issue
   function navigateTo(index: number) {
     const newId = allFairyIds[index];
     if (newId) loadFairy(newId);
@@ -114,120 +110,104 @@ export default function FairyLogDetailScreen() {
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
 
-      {/* Top bar */}
+      {/* Top bar: back button | Fairy Log title | coin badge */}
       <View style={styles.topBar}>
         <TouchableOpacity
           style={[styles.navButton, { backgroundColor: colors.card, borderColor: colors.border }]}
           onPress={() => router.back()}>
           <IconSymbol size={20} name="arrow.left" color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
-          {fairy.name}
-        </Text>
-        <View style={styles.topBarRight} />
+        <Text style={[styles.title, { color: colors.text }]}>Fairy Log</Text>
+        <View style={[styles.coinBadge, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <IconSymbol size={14} name="heart.fill" color={colors.coin} />
+          <Text style={[styles.coinText, { color: colors.coin }]}>{coinBalance}</Text>
+        </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
-        {/* Card */}
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        {/* Name + portrait row */}
+        <View style={styles.headerRow}>
+          <View style={styles.headerLeft}>
+            <Text style={[styles.fairyName, { color: colors.text }]}>{fairy.name}</Text>
 
-          {/* Name tab */}
-          <View style={[styles.nameTab, { backgroundColor: colors.tint }]}>
-            <Text style={styles.nameTabText}>{fairy.name}</Text>
-          </View>
-
-          <View style={styles.cardBody}>
-            {/* Portrait */}
-            <View style={styles.portraitColumn}>
-              <View style={[styles.portrait, { backgroundColor: colors.background, borderColor: colors.border }]}>
-                <Text style={styles.portraitEmoji}>✨</Text>
-              </View>
-              <Text style={[styles.rarityStars, { color: rarityColor }]}>
-                {RARITY_STARS[fairy.rarity] ?? '★'}
-              </Text>
-              <Text style={[styles.rarityLabel, { color: rarityColor }]}>
-                {fairy.rarity.charAt(0).toUpperCase() + fairy.rarity.slice(1)}
-              </Text>
-            </View>
-
-            {/* Info */}
-            <View style={styles.infoColumn}>
-              <Text style={[styles.infoLabel, { color: colors.icon }]}>Friendship</Text>
-              <Text style={[styles.infoValue, { color: colors.text }]}>Lv {friendshipLevel}</Text>
-
-              <View style={[styles.friendshipTrack, { backgroundColor: colors.background }]}>
-                <View style={[styles.friendshipFill, {
-                  backgroundColor: colors.tint,
-                  width: `${Math.round(friendshipProgress * 100)}%` as any,
-                }]} />
-              </View>
-
-              <Text style={[styles.infoLabel, { color: colors.icon, marginTop: 8 }]}>Total Visits</Text>
-              <Text style={[styles.infoValue, { color: colors.text }]}>
-                {fairy.collection?.total_visits ?? 0}
-              </Text>
-
-              {fairy.lore ? (
-                <Text style={[styles.lore, { color: colors.icon }]} numberOfLines={4}>
-                  "{fairy.lore}"
+            {/* Rarity tag */}
+            <View style={styles.tagsRow}>
+              <View style={[styles.tag, { borderColor: rarityColor }]}>
+                <Text style={[styles.tagText, { color: rarityColor }]}>
+                  {fairy.rarity.charAt(0).toUpperCase() + fairy.rarity.slice(1)}
                 </Text>
-              ) : null}
+              </View>
+            </View>
+
+            {/* Friendship */}
+            <Text style={[styles.friendshipLabel, { color: colors.text }]}>
+              Friendship Level {friendshipLevel}
+            </Text>
+            <View style={[styles.friendshipTrack, { backgroundColor: colors.border }]}>
+              <View style={[styles.friendshipFill, {
+                backgroundColor: colors.tint,
+                width: `${Math.round(friendshipProgress * 100)}%` as any,
+              }]} />
             </View>
           </View>
 
-          {/* Drops */}
-          {fairy.dropMaterial && (
-            <View style={[styles.dropsSection, { borderTopColor: colors.border }]}>
-              <Text style={[styles.dropsLabel, { color: colors.icon }]}>DROPS</Text>
-              <View style={[styles.dropChip, { backgroundColor: colors.background, borderColor: colors.border }]}>
-                <IconSymbol size={14} name="drop.fill" color={rarityColor} />
-                <Text style={[styles.dropText, { color: colors.text }]}>{fairy.dropMaterial.name}</Text>
+          {/* Portrait */}
+          <View style={[styles.portrait, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={styles.portraitEmoji}>✨</Text>
+          </View>
+        </View>
+
+        {/* Lore */}
+        {fairy.lore ? (
+          <Text style={[styles.lore, { color: colors.icon }]}>"{fairy.lore}"</Text>
+        ) : null}
+
+        {/* Drops */}
+        {fairy.dropMaterial && (
+          <View style={styles.dropsSection}>
+            <Text style={[styles.dropsLabel, { color: colors.text }]}>Drops</Text>
+            <View style={styles.dropsRow}>
+              <View style={styles.dropItem}>
+                <View style={[styles.dropThumb, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                  <IconSymbol size={22} name="drop.fill" color={rarityColor} />
+                </View>
+                <Text style={[styles.dropName, { color: colors.text }]}>{fairy.dropMaterial.name}</Text>
               </View>
             </View>
-          )}
-        </View>
-
-        {/* Prev / Next navigation */}
-        <View style={styles.navRow}>
-          <TouchableOpacity
-            style={[
-              styles.navBtn,
-              { backgroundColor: colors.card, borderColor: colors.border },
-              currentIndex === 0 && styles.navBtnDisabled,
-            ]}
-            onPress={() => navigateTo(currentIndex - 1)}
-            disabled={currentIndex === 0}>
-            <IconSymbol size={18} name="arrow.left" color={currentIndex === 0 ? colors.icon : colors.text} />
-            <Text style={[styles.navBtnText, { color: currentIndex === 0 ? colors.icon : colors.text }]}>
-              Prev
-            </Text>
-          </TouchableOpacity>
-
-          <Text style={[styles.pageText, { color: colors.icon }]}>
-            {currentIndex + 1} / {allFairyIds.length}
-          </Text>
-
-          <TouchableOpacity
-            style={[
-              styles.navBtn,
-              { backgroundColor: colors.card, borderColor: colors.border },
-              currentIndex === allFairyIds.length - 1 && styles.navBtnDisabled,
-            ]}
-            onPress={() => navigateTo(currentIndex + 1)}
-            disabled={currentIndex === allFairyIds.length - 1}>
-            <Text style={[styles.navBtnText, { color: currentIndex === allFairyIds.length - 1 ? colors.icon : colors.text }]}>
-              Next
-            </Text>
-            <IconSymbol
-              size={18}
-              name="chevron.right"
-              color={currentIndex === allFairyIds.length - 1 ? colors.icon : colors.text}
-            />
-          </TouchableOpacity>
-        </View>
+          </View>
+        )}
 
       </ScrollView>
+
+      {/* Bottom navigation */}
+      <View style={[styles.bottomNav, { borderTopColor: colors.border }]}>
+        <TouchableOpacity
+          style={[styles.navBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+          onPress={() => router.back()}>
+          <IconSymbol size={16} name="arrow.left" color={colors.text} />
+          <Text style={[styles.navBtnText, { color: colors.text }]}>Back</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.navBtn,
+            { backgroundColor: colors.card, borderColor: colors.border },
+            currentIndex >= allFairyIds.length - 1 && styles.navBtnDisabled,
+          ]}
+          onPress={() => navigateTo(currentIndex + 1)}
+          disabled={currentIndex >= allFairyIds.length - 1}>
+          <Text style={[styles.navBtnText, {
+            color: currentIndex >= allFairyIds.length - 1 ? colors.icon : colors.text,
+          }]}>Next</Text>
+          <IconSymbol
+            size={16}
+            name="chevron.right"
+            color={currentIndex >= allFairyIds.length - 1 ? colors.icon : colors.text}
+          />
+        </TouchableOpacity>
+      </View>
+
     </SafeAreaView>
   );
 }
@@ -248,92 +228,90 @@ const styles = StyleSheet.create({
   navButton: {
     width: 42,
     height: 42,
-    borderRadius: 21,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: { flex: 1, fontSize: 20, fontWeight: '700', textAlign: 'center' },
-  topBarRight: { width: 42 },
-
-  content: { padding: 20, gap: 20 },
-
-  card: {
-    borderRadius: 20,
-    borderWidth: 1.5,
-    overflow: 'hidden',
-  },
-  nameTab: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    alignSelf: 'flex-start',
-    borderBottomRightRadius: 16,
-  },
-  nameTabText: { color: '#fff', fontSize: 18, fontWeight: '700' },
-
-  cardBody: {
-    flexDirection: 'row',
-    padding: 16,
-    gap: 16,
-  },
-  portraitColumn: {
-    alignItems: 'center',
-    gap: 8,
-    width: 100,
-  },
-  portrait: {
-    width: 90,
-    height: 90,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  portraitEmoji: { fontSize: 48 },
-  rarityStars: { fontSize: 20 },
-  rarityLabel: { fontSize: 12, fontWeight: '600' },
-
-  infoColumn: { flex: 1, gap: 4 },
-  infoLabel: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-  infoValue: { fontSize: 18, fontWeight: '700' },
-
-  friendshipTrack: {
-    height: 8,
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginVertical: 4,
-  },
-  friendshipFill: { height: '100%', borderRadius: 4 },
-
-  lore: {
-    fontSize: 13,
-    lineHeight: 18,
-    fontStyle: 'italic',
-    marginTop: 8,
-  },
-
-  dropsSection: {
-    borderTopWidth: 1,
-    padding: 16,
-    gap: 10,
-  },
-  dropsLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8 },
-  dropChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
     borderRadius: 12,
     borderWidth: 1,
-    alignSelf: 'flex-start',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  dropText: { fontSize: 14 },
-
-  navRow: {
+  title: { flex: 1, fontSize: 20, fontWeight: '700' },
+  coinBadge: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  coinText: { fontSize: 14, fontWeight: '700' },
+
+  content: { padding: 20, gap: 20, paddingBottom: 12 },
+
+  // Header row: name+tags+friendship left, portrait right
+  headerRow: {
+    flexDirection: 'row',
+    gap: 16,
+    alignItems: 'flex-start',
+  },
+  headerLeft: { flex: 1, gap: 10 },
+  fairyName: { fontSize: 22, fontWeight: '700' },
+
+  tagsRow: { flexDirection: 'row', gap: 8 },
+  tag: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+  },
+  tagText: { fontSize: 13, fontWeight: '600' },
+
+  friendshipLabel: { fontSize: 14, fontWeight: '600', marginTop: 4 },
+  friendshipTrack: {
+    height: 10,
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
+  friendshipFill: { height: '100%', borderRadius: 5 },
+
+  portrait: {
+    width: 110,
+    height: 130,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  portraitEmoji: { fontSize: 52 },
+
+  lore: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontStyle: 'italic',
+  },
+
+  // Drops
+  dropsSection: { gap: 12 },
+  dropsLabel: { fontSize: 15, fontWeight: '700' },
+  dropsRow: { flexDirection: 'row', gap: 16 },
+  dropItem: { alignItems: 'center', gap: 6 },
+  dropThumb: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dropName: { fontSize: 12, fontWeight: '500' },
+
+  // Bottom nav
+  bottomNav: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderTopWidth: 1,
   },
   navBtn: {
     flexDirection: 'row',
@@ -341,10 +319,9 @@ const styles = StyleSheet.create({
     gap: 6,
     borderRadius: 12,
     borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 11,
   },
   navBtnDisabled: { opacity: 0.4 },
-  navBtnText: { fontSize: 14, fontWeight: '600' },
-  pageText: { fontSize: 13 },
+  navBtnText: { fontSize: 15, fontWeight: '600' },
 });

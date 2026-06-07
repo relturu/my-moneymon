@@ -200,12 +200,16 @@ export default function QuestsScreen() {
               {/* Reward chip */}
               <View style={[
                 styles.rewardChip,
-                { backgroundColor: completed ? colors.income : colors.card, borderColor: completed ? colors.income : colors.border },
+                { backgroundColor: completed ? colors.background : colors.card, borderColor: colors.border },
               ]}>
-                <IconSymbol size={14} name="heart.fill" color={completed ? '#fff' : colors.coin} />
-                <Text style={[styles.rewardText, { color: completed ? '#fff' : colors.coin }]}>
-                  {q.coin_reward}
-                </Text>
+                {completed ? (
+                  <Text style={[styles.checkmark, { color: colors.income }]}>✓</Text>
+                ) : (
+                  <>
+                    <IconSymbol size={14} name="heart.fill" color={colors.coin} />
+                    <Text style={[styles.rewardText, { color: colors.coin }]}>{q.coin_reward}</Text>
+                  </>
+                )}
               </View>
 
               {/* Quest info */}
@@ -319,11 +323,13 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 3,
+    flexDirection: 'column',
+    gap: 2,
     padding: 6,
     flexShrink: 0,
   },
   rewardText: { fontSize: 13, fontWeight: '700' },
+  checkmark: { fontSize: 20, fontWeight: '700' },
 
   questInfo: { flex: 1, gap: 8 },
   questTitle: { fontSize: 15, fontWeight: '600', lineHeight: 20 },

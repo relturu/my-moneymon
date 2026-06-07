@@ -17,7 +17,6 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { getDevTest, setDevTest } from '@/lib/dev-test';
-import { captureSnapshot } from '@/lib/admin';
 import { useNotifs } from '@/lib/notifications';
 import type {
   User,
@@ -74,9 +73,8 @@ export default function FountainScreen() {
   const [activeFairy, setActiveFairy] = useState<ActiveFairy | null>(null);
   const [mailboxVisits, setMailboxVisits] = useState<MailboxVisit[]>([]);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [claiming, setClaiming] = useState(false);
   const [tick, setTick] = useState(0); // forces countdown re-render
-  const { setFountain, setInventory, setFairyLog } = useNotifs();
+  const { setFountain } = useNotifs();
 
   // Re-render countdown every minute
   useEffect(() => {
@@ -136,8 +134,8 @@ export default function FountainScreen() {
       setActiveFairy(null);
     }
 
-    // Mailbox: expired visits with unclaimed materials
-    const { data: mailboxData } = await supabase
+    // Mailbox: expired visits, OR active visits where user already chatted (gift unlocked early)
+    const { data: expiredVisits } = await supabase
       .from('fountain_visits')
       .select('*')
       .eq('user_id', authUser.id)
@@ -145,8 +143,22 @@ export default function FountainScreen() {
       .eq('materials_claimed', false)
       .lt('departs_at', now);
 
+    const { data: chattedVisits } = await supabase
+      .from('fountain_visits')
+      .select('*')
+      .eq('user_id', authUser.id)
+      .eq('is_active', true)
+      .eq('materials_claimed', false)
+      .gt('departs_at', now)
+      .gt('convo_count', 0);
+
+    const mailboxData = [
+      ...(expiredVisits as FountainVisit[] | null ?? []),
+      ...(chattedVisits as FountainVisit[] | null ?? []),
+    ];
+
     const mailboxList: MailboxVisit[] = [];
-    for (const visit of (mailboxData as FountainVisit[] | null) ?? []) {
+    for (const visit of mailboxData) {
       const { data: fairyData } = await supabase
         .from('fairy_definitions').select('*').eq('id', visit.fairy_id).single();
       const fairy = fairyData as FairyDefinition | null;
@@ -190,119 +202,6 @@ export default function FountainScreen() {
         setUser({ ...p, next_toss_available_at: nextToss });
       }
     }
-  }
-
-  async function claimMailbox() {
-    if (claiming || mailboxVisits.length === 0) return;
-    setClaiming(true);
-
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    if (!authUser) { setClaiming(false); return; }
-
-    await captureSnapshot(authUser.id);
-
-    const drops: string[] = [];
-    let totalXp = 0;
-    let newFairyDiscovered = false;
-
-    for (const visit of mailboxVisits) {
-      const wasInteracted = !!visit.interacted_at;
-      const isTestVisit = getDevTest().visitId === visit.id;
-
-      if (visit.material) {
-        const xp = Math.floor(
-          Math.random() * (visit.material.xp_max - visit.material.xp_min + 1)
-        ) + visit.material.xp_min;
-        if (!isTestVisit) totalXp += xp; // no XP for test visits
-
-        // Upsert inventory
-        const { data: existing } = await supabase
-          .from('user_inventory').select('*')
-          .eq('user_id', authUser.id).eq('material_id', visit.material.id).single();
-
-        const db = supabase as any;
-        if (existing) {
-          await db.from('user_inventory')
-            .update({ quantity: (existing as any).quantity + 1, updated_at: new Date().toISOString() })
-            .eq('id', (existing as any).id);
-        } else {
-          await db.from('user_inventory').insert({
-            user_id: authUser.id,
-            material_id: visit.material.id,
-            quantity: 1,
-          });
-        }
-
-        drops.push(isTestVisit
-          ? `${visit.material.name} (test — no XP)`
-          : `${visit.material.name} (+${xp} XP)`);
-      }
-
-      // Ensure fairy is discovered in collection
-      const db = supabase as any;
-      const { data: colExisting } = await supabase
-        .from('user_fairy_collection').select('*')
-        .eq('user_id', authUser.id).eq('fairy_id', visit.fairy_id).single();
-
-      if (colExisting) {
-        await db.from('user_fairy_collection')
-          .update({ total_visits: (colExisting as any).total_visits + 1 })
-          .eq('id', (colExisting as any).id);
-      } else {
-        newFairyDiscovered = true;
-        await db.from('user_fairy_collection').insert({
-          user_id: authUser.id,
-          fairy_id: visit.fairy_id,
-          friendship_level: wasInteracted ? 1 : 0,
-          total_visits: 1,
-        });
-      }
-
-      // Mark visit complete
-      await db.from('fountain_visits')
-        .update({ materials_claimed: true, is_active: false })
-        .eq('id', visit.id);
-    }
-
-    // Apply XP and check level-up
-    const db2 = supabase as any;
-    if (totalXp > 0 && user) {
-      const newXp = (user.fountain_xp ?? 0) + totalXp;
-      let newLevel = user.fountain_level ?? 1;
-
-      const { data: allUpgrades } = await supabase
-        .from('fountain_upgrades').select('*').order('level', { ascending: true });
-      for (const upgrade of (allUpgrades as FountainUpgrade[] | null) ?? []) {
-        if (upgrade.level > newLevel && newXp >= upgrade.xp_required) {
-          newLevel = upgrade.level;
-        }
-      }
-
-      await db2.from('users')
-        .update({ fountain_xp: newXp, fountain_level: newLevel })
-        .eq('id', authUser.id);
-
-      const leveledUp = newLevel > (user.fountain_level ?? 1);
-      Alert.alert(
-        '📬 Mailbox collected!',
-        drops.join('\n') + (leveledUp ? `\n\n✨ Fountain leveled up to ${newLevel}!` : ''),
-      );
-    } else if (drops.length > 0) {
-      Alert.alert('📬 Mailbox collected!', drops.join('\n'));
-    }
-
-    // Mark devTest as claimed if the test visit was in this mailbox
-    const dt = getDevTest();
-    if (dt.active && !dt.claimed && mailboxVisits.some((v) => v.id === dt.visitId)) {
-      setDevTest({ claimed: true });
-    }
-
-    // Notify other tabs: inventory always gets new items, fairy log if new discovery
-    if (drops.length > 0) setInventory(true);
-    if (newFairyDiscovered) setFairyLog(true);
-
-    setClaiming(false);
-    await load();
   }
 
   async function startDevTest() {
@@ -422,25 +321,38 @@ export default function FountainScreen() {
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
 
-      {/* Top bar */}
-      <View style={styles.topBar}>
-        <TouchableOpacity
-          style={[styles.topBarButton, { backgroundColor: colors.card, borderColor: colors.border }]}
-          onPress={() => router.push('/quests' as any)}>
-          <IconSymbol size={18} name="scroll.fill" color={colors.tint} />
-          <Text style={[styles.topBarButtonText, { color: colors.tint }]}>Quests</Text>
-        </TouchableOpacity>
-
+      {/* Coin badge — top right */}
+      <View style={styles.coinRow}>
         <View style={[styles.wishBadge, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <IconSymbol size={16} name="heart.fill" color={colors.coin} />
           <Text style={[styles.wishText, { color: colors.coin }]}>{user?.coin_balance ?? 0}</Text>
         </View>
       </View>
 
+      {/* Icon button row — quests left, mailbox right */}
+      <View style={styles.iconRow}>
+        <TouchableOpacity
+          style={[styles.iconButton, { backgroundColor: colors.card, borderColor: colors.border }]}
+          onPress={() => router.push('/quests' as any)}>
+          <IconSymbol size={22} name="scroll.fill" color={colors.tint} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.iconButton, { backgroundColor: colors.card, borderColor: colors.border }]}
+          onPress={mailboxVisits.length > 0
+            ? () => router.push(`/fairy-gift?visitId=${mailboxVisits[0].id}` as any)
+            : undefined}>
+          <Text style={styles.iconButtonEmoji}>🎁</Text>
+          {mailboxVisits.length > 0 && (
+            <View style={[styles.mailboxDot, { backgroundColor: '#EF4444', borderColor: colors.background }]} />
+          )}
+        </TouchableOpacity>
+      </View>
+
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
-        {/* Fountain visual */}
-        <View style={styles.fountainArea}>
+        {/* Fountain card — large centered visual */}
+        <View style={[styles.fountainCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <TouchableOpacity
             style={styles.fountainTouchable}
             onPress={() => activeFairy ? setSheetOpen(true) : undefined}
@@ -471,9 +383,12 @@ export default function FountainScreen() {
               </View>
             )}
           </TouchableOpacity>
+        </View>
 
+        {/* Fountain labels */}
+        <View style={styles.fountainLabels}>
+          <Text style={[styles.fountainTitle, { color: colors.text }]}>Wish Fountain</Text>
           <Text style={[styles.levelLabel, { color: colors.text }]}>Level {fountainLevel}</Text>
-
           {nextLevel && (
             <View style={styles.xpRow}>
               <View style={[styles.xpTrack, { backgroundColor: colors.border }]}>
@@ -489,38 +404,10 @@ export default function FountainScreen() {
           )}
         </View>
 
-        {/* Mailbox */}
-        {mailboxVisits.length > 0 && (
-          <View style={[styles.mailboxCard, { backgroundColor: colors.card, borderColor: colors.coin }]}>
-            <View style={styles.mailboxHeader}>
-              <Text style={styles.mailboxEmoji}>📬</Text>
-              <View style={styles.mailboxInfo}>
-                <Text style={[styles.mailboxTitle, { color: colors.text }]}>
-                  {mailboxVisits.length === 1
-                    ? `${mailboxVisits[0].fairy.name} left a gift!`
-                    : `${mailboxVisits.length} fairies left gifts!`}
-                </Text>
-                <Text style={[styles.mailboxSub, { color: colors.icon }]}>
-                  {mailboxVisits.map((v) => v.material?.name ?? '—').join(', ')}
-                </Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              style={[styles.collectButton, { backgroundColor: colors.coin }]}
-              onPress={claimMailbox}
-              disabled={claiming}>
-              <Text style={styles.collectButtonText}>
-                {claiming ? 'Collecting...' : 'Collect'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
         {/* Action area */}
         {activeFairy ? (
           <View style={styles.actions}>
             {activeFairy.materials_claimed ? (
-              /* Gift already collected — fairy still hangs around */
               <View style={[styles.cooldownCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                 <Text style={[styles.cooldownLabel, { color: colors.icon }]}>
                   ✓ Gift collected · {activeFairy.fairy.name} is still visiting
@@ -554,7 +441,6 @@ export default function FountainScreen() {
           </View>
         ) : (
           <View style={styles.actions}>
-            {/* Toss cooldown check */}
             {user?.next_toss_available_at && new Date(user.next_toss_available_at).getTime() > Date.now() ? (
               <View style={[styles.cooldownCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
                 <Text style={[styles.cooldownLabel, { color: colors.icon }]}>Next fairy in</Text>
@@ -692,24 +578,14 @@ export default function FountainScreen() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
 
-  topBar: {
+  // Coin badge row — right-aligned
+  coinRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    justifyContent: 'flex-end',
     paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 4,
+    paddingTop: 2,
+    paddingBottom: 2,
   },
-  topBarButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  topBarButtonText: { fontSize: 14, fontWeight: '600' },
   wishBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -721,10 +597,46 @@ const styles = StyleSheet.create({
   },
   wishText: { fontSize: 16, fontWeight: '700' },
 
-  content: { flexGrow: 1, paddingHorizontal: 20, paddingBottom: 32, gap: 20 },
+  // Icon button row — quests left, mailbox right
+  iconRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 4,
+  },
+  iconButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconButtonEmoji: { fontSize: 22 },
+  mailboxDot: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 2,
+  },
 
-  fountainArea: { alignItems: 'center', paddingTop: 28, gap: 14 },
-  fountainTouchable: { alignItems: 'center', justifyContent: 'center', position: 'relative' },
+  content: { flexGrow: 1, paddingHorizontal: 20, paddingBottom: 32, gap: 16, alignItems: 'center' },
+
+  // Fountain card — large centered visual
+  fountainCard: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: 20,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  fountainTouchable: { flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center', position: 'relative' },
   glowRing: {
     position: 'absolute',
     width: 200,
@@ -740,8 +652,8 @@ const styles = StyleSheet.create({
 
   fairyBubble: {
     position: 'absolute',
-    top: -24,
-    right: -20,
+    top: 16,
+    right: 16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -753,32 +665,17 @@ const styles = StyleSheet.create({
   },
   fairyBubbleEmoji: { fontSize: 14 },
   fairyBubbleName: { fontSize: 13, fontWeight: '600' },
-  levelLabel: { fontSize: 18, fontWeight: '700' },
-  xpRow: { width: '100%', gap: 6 },
+
+  // Labels below fountain card
+  fountainLabels: { alignItems: 'center', gap: 4, width: '100%' },
+  fountainTitle: { fontSize: 20, fontWeight: '700', textAlign: 'center' },
+  levelLabel: { fontSize: 15, fontWeight: '500', textAlign: 'center' },
+  xpRow: { width: '100%', gap: 6, marginTop: 4 },
   xpTrack: { height: 8, borderRadius: 4, overflow: 'hidden' },
   xpFill: { height: '100%', borderRadius: 4 },
   xpLabel: { fontSize: 12, textAlign: 'center' },
 
-  // Mailbox
-  mailboxCard: {
-    borderRadius: 16,
-    borderWidth: 1.5,
-    padding: 14,
-    gap: 12,
-  },
-  mailboxHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  mailboxEmoji: { fontSize: 28 },
-  mailboxInfo: { flex: 1 },
-  mailboxTitle: { fontSize: 15, fontWeight: '600' },
-  mailboxSub: { fontSize: 13, marginTop: 2 },
-  collectButton: {
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  collectButtonText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-
-  actions: { gap: 10 },
+  actions: { gap: 10, width: '100%' },
   primaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
