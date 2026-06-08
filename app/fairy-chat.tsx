@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 
+import CoinSvg from '@/assets/images/coin.svg';
 import { supabase } from '@/lib/supabase';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import type { FountainVisit, FairyDefinition, UserFairyCollection } from '@/types/database';
@@ -154,7 +155,7 @@ export default function FairyChatScreen() {
         {/* Top row: coin badge left, close button right */}
         <View style={styles.topRow}>
           <View style={styles.coinBadge}>
-            <Text style={styles.coinEmoji}>🪙</Text>
+            <CoinSvg width={18} height={18} />
             <Text style={styles.coinText}>{coinBalance}</Text>
           </View>
           <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()}>

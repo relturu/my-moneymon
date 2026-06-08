@@ -10,6 +10,7 @@ const FAIRY_PORTRAITS: Record<string, any> = {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 
+import CoinSvg from '@/assets/images/coin.svg';
 import { supabase } from '@/lib/supabase';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -126,7 +127,7 @@ export default function FairyLogDetailScreen() {
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>Fairy Log</Text>
         <View style={[styles.coinBadge, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <IconSymbol size={14} name="heart.fill" color={colors.coin} />
+          <CoinSvg width={14} height={14} />
           <Text style={[styles.coinText, { color: colors.coin }]}>{coinBalance}</Text>
         </View>
       </View>

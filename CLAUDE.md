@@ -124,6 +124,8 @@ hooks/
 - `activeFairy` — a fairy currently visiting (departs_at in future, materials_claimed = false)
 - `mailboxVisits` — expired visits (departs_at in past, materials_claimed = false) awaiting collection
 - `sheetOpen` — bottom sheet for fairy interaction (pat, shoo, see drops)
+- `giftSheetOpen` — gift history bottom sheet (opened by tapping 🎁 icon)
+- `collectedHistory` — up to 10 most recently collected visits (for gift history sheet)
 
 ### Events
 | Event | What happens |
@@ -131,14 +133,25 @@ hooks/
 | Fairy visits | `fountain_visits` row inserted via toss screen. Active fairy shows on fountain. |
 | User pats fairy | `fountain_visits.interacted_at` updated; `user_fairy_collection.friendship_level` incremented |
 | Fairy leaves (timer expires) | Visit moves from active → mailbox (detected via `departs_at < now`) |
+| User taps 🎁 icon | Gift history sheet opens — always, regardless of pending count. Shows PENDING + COLLECTED sections. |
 | User collects mailbox | Materials added to `user_inventory`; XP applied to `users`; visit marked `materials_claimed=true, is_active=false`; fairy logged in `user_fairy_collection` |
 | Level-up on collect | Checked by comparing new XP against all `fountain_upgrades` thresholds |
+
+### Gift history sheet
+- **PENDING** section — tappable rows; each navigates to `fairy-gift?visitId=...` to open the gift
+- **COLLECTED** section — read-only rows showing fairy name, material dropped, and arrival date (up to 10 most recent)
+- Empty state shown when both sections are empty
+- `collectedHistory` is loaded in `load()` alongside mailboxVisits
 
 ### Pat cooldown
 8 hours between pats per visit (`INTERACTION_COOLDOWN_HOURS = 8`). Cooldown text shown when unavailable.
 
 ### Dev test button
 "Test Fairy Material Functionality" on the fountain screen creates a synthetic expired visit so developers can test the full mailbox → collect → inventory → fairy-log flow without waiting for real visits. Dev test visits are cleaned up automatically (no XP awarded, collection/inventory entries removed when user navigates away from fairy-log).
+
+### `fairy-gift.tsx` — gift reveal
+- **Pre-collection**: shows fairy portrait, `{fairy.name} left you a gift!`, and "Open Gift ✨" button only. Material name is intentionally hidden until opened.
+- **Post-collection**: reveals material name + XP gained (or `(test — no XP)` for dev visits).
 
 ---
 

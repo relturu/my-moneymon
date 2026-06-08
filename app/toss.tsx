@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
+import CoinSvg from '@/assets/images/coin.svg';
 import { supabase } from '@/lib/supabase';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -171,7 +172,7 @@ export default function TossScreen() {
           <IconSymbol size={20} name="arrow.left" color={colors.text} />
         </TouchableOpacity>
         <View style={[styles.wishBadge, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <IconSymbol size={16} name="heart.fill" color={colors.coin} />
+          <CoinSvg width={16} height={16} />
           <Text style={[styles.wishText, { color: colors.coin }]}>{user?.coin_balance ?? 0}</Text>
         </View>
       </View>
@@ -192,7 +193,7 @@ export default function TossScreen() {
         <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Text style={[styles.sectionLabel, { color: colors.icon }]}>WISHES TO TOSS</Text>
           <View style={[styles.amountDisplay, { borderColor: colors.border }]}>
-            <IconSymbol size={20} name="heart.fill" color={colors.coin} />
+            <CoinSvg width={20} height={20} />
             <Text style={[styles.amountText, { color: colors.coin }]}>{amount}</Text>
           </View>
           <View style={styles.amountGrid}>

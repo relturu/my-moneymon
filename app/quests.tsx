@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
+import CoinSvg from '@/assets/images/coin.svg';
 import { supabase } from '@/lib/supabase';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { captureSnapshot } from '@/lib/admin';
@@ -93,7 +94,7 @@ export default function QuestsScreen() {
     if (!quest.userQuest) return;
     Alert.alert(
       'Complete quest?',
-      `Did you really complete: "${quest.title}"?\n\nYou'll earn ♥ ${quest.coin_reward} wishes.`,
+      `Did you really complete: "${quest.title}"?\n\nYou'll earn ${quest.coin_reward} wishes.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -137,7 +138,7 @@ export default function QuestsScreen() {
         {/* Coin badge on background */}
         <View style={styles.topArea}>
           <View style={styles.coinBadge}>
-            <IconSymbol size={15} name="heart.fill" color="#FCD34D" />
+            <CoinSvg width={15} height={15} />
             <Text style={styles.coinText}>{coinBalance}</Text>
           </View>
         </View>
@@ -194,7 +195,7 @@ export default function QuestsScreen() {
                       <Text style={styles.checkmark}>✓</Text>
                     ) : (
                       <>
-                        <IconSymbol size={14} name="heart.fill" color="#FCD34D" />
+                        <CoinSvg width={14} height={14} />
                         <Text style={styles.rewardText}>{q.coin_reward}</Text>
                       </>
                     )}

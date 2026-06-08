@@ -3,6 +3,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import type { Session } from '@supabase/supabase-js';
 import { useFonts } from 'expo-font';
 import {
@@ -62,6 +63,7 @@ export default function RootLayout() {
   const appReady = !loading && fontsLoaded;
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <NotifProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         {!splashDone && <SplashAnim ready={appReady} onDone={() => setSplashDone(true)} />}
@@ -76,5 +78,6 @@ export default function RootLayout() {
         <StatusBar style="auto" />
       </ThemeProvider>
     </NotifProvider>
+    </GestureHandlerRootView>
   );
 }

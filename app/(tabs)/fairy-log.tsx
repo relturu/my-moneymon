@@ -19,6 +19,7 @@ const FAIRY_PORTRAITS: Record<string, any> = {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 
+import CoinSvg from '@/assets/images/coin.svg';
 import { supabase } from '@/lib/supabase';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { getDevTest, setDevTest } from '@/lib/dev-test';
@@ -164,7 +165,7 @@ export default function FairyLogScreen() {
         {/* Coin badge on background */}
         <View style={styles.topArea}>
           <View style={styles.coinBadge}>
-            <IconSymbol size={15} name="heart.fill" color="#FCD34D" />
+            <CoinSvg width={15} height={15} />
             <Text style={styles.coinText}>{coinBalance}</Text>
           </View>
         </View>
@@ -175,7 +176,7 @@ export default function FairyLogScreen() {
 
           {/* Panel header */}
           <View style={styles.panelHeader}>
-            <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+            <TouchableOpacity style={styles.backBtn} onPress={() => router.navigate('/(tabs)/' as any)}>
               <IconSymbol size={20} name="arrow.left" color="#fff" />
             </TouchableOpacity>
             <Text style={styles.panelTitle}>Fairy Log</Text>
