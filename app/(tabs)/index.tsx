@@ -8,10 +8,15 @@ import {
   Pressable,
   Alert,
   ImageBackground,
+  Image,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
+import { GestureDetector, Gesture } from 'react-native-gesture-handler';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
+import CoinSvg from '@/assets/images/coin.svg';
 import { supabase } from '@/lib/supabase';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -37,6 +42,11 @@ type MailboxVisit = FountainVisit & {
   material: Material | null;
 };
 
+type CollectedVisit = FountainVisit & {
+  fairy: FairyDefinition;
+  material: Material | null;
+};
+
 const RARITY_STARS: Record<string, string> = {
   common: '★',
   rare: '★★',
@@ -46,6 +56,17 @@ const RARITY_STARS: Record<string, string> = {
 
 const MAX_CONVOS = 3;
 
+const FAIRY_PORTRAITS: Record<string, any> = {
+  felicity: require('@/assets/images/felicity.png'),
+  mallow:   require('@/assets/images/mallow.png'),
+  pepper:   require('@/assets/images/pepper.png'),
+  webster:  require('@/assets/images/webster.png'),
+};
+
+function formatArrivalDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
 
 function formatDuration(ms: number): string {
   if (ms <= 0) return '0m';
@@ -65,8 +86,30 @@ export default function FountainScreen() {
   const [activeFairy, setActiveFairy] = useState<ActiveFairy | null>(null);
   const [mailboxVisits, setMailboxVisits] = useState<MailboxVisit[]>([]);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [giftSheetOpen, setGiftSheetOpen] = useState(false);
+  const [collectedHistory, setCollectedHistory] = useState<CollectedVisit[]>([]);
   const [tick, setTick] = useState(0); // forces countdown re-render
   const { setFountain } = useNotifs();
+
+  const bottomTranslateY = useSharedValue(0);
+
+  const pullGesture = Gesture.Pan()
+    .onUpdate((e) => {
+      if (e.translationY > 0) {
+        bottomTranslateY.value = e.translationY * 0.35;
+      }
+    })
+    .onEnd(() => {
+      bottomTranslateY.value = withSpring(0, {
+        damping: 12,
+        stiffness: 180,
+        mass: 0.8,
+      });
+    });
+
+  const bottomAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: bottomTranslateY.value }],
+  }));
 
   // Re-render countdown every minute
   useEffect(() => {
@@ -164,6 +207,31 @@ export default function FountainScreen() {
       mailboxList.push({ ...visit, fairy, material });
     }
     setMailboxVisits(mailboxList);
+
+    // Collected history: up to 10 most recently collected visits
+    const { data: collectedData } = await supabase
+      .from('fountain_visits')
+      .select('*')
+      .eq('user_id', authUser.id)
+      .eq('materials_claimed', true)
+      .order('arrived_at', { ascending: false })
+      .limit(10);
+
+    const historyList: CollectedVisit[] = [];
+    for (const visit of (collectedData as FountainVisit[] | null) ?? []) {
+      const { data: fairyData } = await supabase
+        .from('fairy_definitions').select('*').eq('id', visit.fairy_id).single();
+      const fairy = fairyData as FairyDefinition | null;
+      if (!fairy) continue;
+      let material: Material | null = null;
+      if (fairy.material_drop_type) {
+        const { data: matData } = await supabase
+          .from('materials').select('*').eq('name', fairy.material_drop_type).single();
+        material = (matData as Material | null) ?? null;
+      }
+      historyList.push({ ...visit, fairy, material });
+    }
+    setCollectedHistory(historyList);
 
     // Cleanup: visits that expired naturally after an early gift collect — mark is_active=false
     const db = supabase as any;
@@ -310,6 +378,8 @@ export default function FountainScreen() {
   void tick;
 
   return (
+    <GestureDetector gesture={pullGesture}>
+    <View collapsable={false} style={styles.bg}>
     <ImageBackground
       source={require('@/assets/images/home-background.png')}
       style={styles.bg}
@@ -321,7 +391,7 @@ export default function FountainScreen() {
           {/* Left: coin badge + quests button stacked */}
           <View style={styles.topLeft}>
             <View style={styles.coinBadge}>
-              <Text style={styles.coinEmoji}>🪙</Text>
+              <CoinSvg width={18} height={18} />
               <Text style={styles.coinText}>{user?.coin_balance ?? 0}</Text>
             </View>
             <TouchableOpacity
@@ -334,9 +404,7 @@ export default function FountainScreen() {
           {/* Right: mailbox */}
           <TouchableOpacity
             style={styles.topIconBtn}
-            onPress={mailboxVisits.length > 0
-              ? () => router.push(`/fairy-gift?visitId=${mailboxVisits[0].id}` as any)
-              : undefined}>
+            onPress={() => setGiftSheetOpen(true)}>
             <Text style={styles.topIconEmoji}>🎁</Text>
             {mailboxVisits.length > 0 && (
               <View style={styles.mailboxDot} />
@@ -349,15 +417,19 @@ export default function FountainScreen() {
           {activeFairy && (
             <TouchableOpacity
               style={styles.fairyBubble}
-              onPress={() => setSheetOpen(true)}>
-              <Text style={styles.fairyBubbleEmoji}>✨</Text>
+              onPress={() => canChat(activeFairy)
+                ? router.push(`/fairy-chat?visitId=${activeFairy.id}&convoIndex=${activeFairy.convo_count ?? 0}` as any)
+                : setSheetOpen(true)}>
+              {activeFairy.fairy.portrait_url && FAIRY_PORTRAITS[activeFairy.fairy.portrait_url]
+                ? <Image source={FAIRY_PORTRAITS[activeFairy.fairy.portrait_url]} style={styles.fairyBubblePortrait} resizeMode="contain" />
+                : <Text style={styles.fairyBubbleEmoji}>✨</Text>}
               <Text style={styles.fairyBubbleName}>{activeFairy.fairy.name}</Text>
             </TouchableOpacity>
           )}
         </View>
 
         {/* Bottom info overlay — all white text */}
-        <View style={styles.bottomOverlay}>
+        <Animated.View style={[styles.bottomOverlay, bottomAnimStyle]}>
 
           <Text style={styles.fountainTitle}>Wish Fountain</Text>
           <Text style={styles.levelLabel}>Level {fountainLevel}</Text>
@@ -382,15 +454,6 @@ export default function FountainScreen() {
                 </>
               ) : (
                 <>
-                  <TouchableOpacity
-                    style={[styles.primaryButton, { backgroundColor: canChat(activeFairy) ? colors.tint : 'rgba(255,255,255,0.25)' }]}
-                    onPress={() => canChat(activeFairy)
-                      ? router.push(`/fairy-chat?visitId=${activeFairy.id}&convoIndex=${activeFairy.convo_count ?? 0}` as any)
-                      : setSheetOpen(true)}>
-                    <Text style={styles.primaryButtonText}>
-                      {canChat(activeFairy) ? `Talk to ${activeFairy.fairy.name}` : `Visit ${activeFairy.fairy.name}`}
-                    </Text>
-                  </TouchableOpacity>
                   <Text style={styles.infoText}>{nextConvoText(activeFairy)}</Text>
                   <Text style={styles.timerText}>Leaves in {getTimeLeft(activeFairy.departs_at)}</Text>
                 </>
@@ -408,7 +471,10 @@ export default function FountainScreen() {
                 <TouchableOpacity
                   style={[styles.primaryButton, { backgroundColor: colors.tint }]}
                   onPress={() => router.push('/toss' as any)}>
-                  <Text style={styles.primaryButtonText}>Wish ♥</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <CoinSvg width={20} height={20} />
+                    <Text style={styles.primaryButtonText}>Wish</Text>
+                  </View>
                 </TouchableOpacity>
               )}
               <Text style={styles.infoText}>
@@ -420,7 +486,7 @@ export default function FountainScreen() {
             </View>
           )}
 
-        </View>
+        </Animated.View>
 
       {/* Fairy Interaction Bottom Sheet */}
       <Modal
@@ -439,7 +505,9 @@ export default function FountainScreen() {
               <>
                 <View style={styles.sheetHeader}>
                   <View style={[styles.fairyPortrait, { backgroundColor: colors.background, borderColor: colors.border }]}>
-                    <Text style={styles.portraitEmoji}>✨</Text>
+                    {activeFairy.fairy.portrait_url && FAIRY_PORTRAITS[activeFairy.fairy.portrait_url]
+                      ? <Image source={FAIRY_PORTRAITS[activeFairy.fairy.portrait_url]} style={{ width: '100%', height: '100%', borderRadius: 36 }} resizeMode="contain" />
+                      : <Text style={styles.portraitEmoji}>✨</Text>}
                   </View>
                   <View style={styles.sheetHeaderInfo}>
                     <Text style={[styles.sheetFairyName, { color: colors.text }]}>
@@ -517,8 +585,82 @@ export default function FountainScreen() {
         </Pressable>
       </Modal>
 
+      {/* Gift History Bottom Sheet */}
+      <Modal
+        visible={giftSheetOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setGiftSheetOpen(false)}>
+        <Pressable style={styles.scrim} onPress={() => setGiftSheetOpen(false)}>
+          <Pressable
+            style={[styles.sheet, { backgroundColor: colors.card }]}
+            onPress={(e) => e.stopPropagation()}>
+
+            <View style={[styles.handle, { backgroundColor: colors.border }]} />
+            <Text style={[styles.giftSheetTitle, { color: colors.text }]}>Gift Mailbox</Text>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+
+              {mailboxVisits.length > 0 && (
+                <>
+                  <Text style={[styles.giftSectionLabel, { color: colors.icon }]}>PENDING</Text>
+                  {mailboxVisits.map(v => (
+                    <TouchableOpacity
+                      key={v.id}
+                      style={[styles.giftRow, { borderColor: colors.border }]}
+                      onPress={() => { setGiftSheetOpen(false); router.push(`/fairy-gift?visitId=${v.id}` as any); }}>
+                      <View style={[styles.giftRowPortrait, { backgroundColor: colors.background }]}>
+                        {v.fairy.portrait_url && FAIRY_PORTRAITS[v.fairy.portrait_url]
+                          ? <Image source={FAIRY_PORTRAITS[v.fairy.portrait_url]} style={{ width: '100%', height: '100%', borderRadius: 20 }} resizeMode="contain" />
+                          : <Text style={{ fontSize: 18 }}>✨</Text>}
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.giftRowName, { color: colors.text }]}>{v.fairy.name}</Text>
+                        <Text style={[styles.giftRowSub, { color: colors.icon }]}>Gift ready to open</Text>
+                      </View>
+                      <Text style={[styles.giftRowAction, { color: colors.tint }]}>Open →</Text>
+                    </TouchableOpacity>
+                  ))}
+                </>
+              )}
+
+              {collectedHistory.length > 0 && (
+                <>
+                  <Text style={[styles.giftSectionLabel, { color: colors.icon }]}>COLLECTED</Text>
+                  {collectedHistory.map(v => (
+                    <View key={v.id} style={[styles.giftRow, { borderColor: colors.border }]}>
+                      <View style={[styles.giftRowPortrait, { backgroundColor: colors.background }]}>
+                        {v.fairy.portrait_url && FAIRY_PORTRAITS[v.fairy.portrait_url]
+                          ? <Image source={FAIRY_PORTRAITS[v.fairy.portrait_url]} style={{ width: '100%', height: '100%', borderRadius: 20 }} resizeMode="contain" />
+                          : <Text style={{ fontSize: 18 }}>✨</Text>}
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.giftRowName, { color: colors.text }]}>{v.fairy.name}</Text>
+                        <Text style={[styles.giftRowSub, { color: colors.icon }]}>
+                          {v.material ? v.material.name : 'No drop'} · {formatArrivalDate(v.arrived_at)}
+                        </Text>
+                      </View>
+                      <Text style={{ fontSize: 16 }}>✓</Text>
+                    </View>
+                  ))}
+                </>
+              )}
+
+              {mailboxVisits.length === 0 && collectedHistory.length === 0 && (
+                <Text style={[styles.giftEmptyText, { color: colors.icon }]}>
+                  No gifts yet. Summon a fairy to get started!
+                </Text>
+              )}
+
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
     </SafeAreaView>
     </ImageBackground>
+    </View>
+    </GestureDetector>
   );
 }
 
@@ -579,6 +721,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   fairyBubbleEmoji: { fontSize: 16 },
+  fairyBubblePortrait: { width: 44, height: 44, borderRadius: 22 },
   fairyBubbleName: { fontSize: 14, fontFamily: 'Kanchenjunga_700Bold', color: '#fff' },
 
   // Bottom overlay — white text info
@@ -663,4 +806,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   shooButtonText: { fontSize: 14, fontWeight: '500' },
+
+  // Gift history sheet
+  giftSheetTitle: { fontSize: 20, fontFamily: 'Kanchenjunga_700Bold', marginBottom: 4 },
+  giftSectionLabel: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8, marginTop: 4 },
+  giftRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  giftRowPortrait: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  giftRowName: { fontSize: 15, fontFamily: 'Kanchenjunga_700Bold' },
+  giftRowSub: { fontSize: 12, marginTop: 2 },
+  giftRowAction: { fontSize: 14, fontWeight: '600' },
+  giftEmptyText: { fontSize: 14, textAlign: 'center', marginTop: 24, fontStyle: 'italic' },
 });

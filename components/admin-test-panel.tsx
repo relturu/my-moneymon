@@ -12,6 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 
+import CoinSvg from '@/assets/images/coin.svg';
 import { supabase } from '@/lib/supabase';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -271,7 +272,10 @@ export default function AdminTestPanel({ userId, userEmail }: Props) {
                         </TouchableOpacity>
                       ))}
                       <View style={[styles.stepValue, { backgroundColor: colors.background, borderColor: colors.border }]}>
-                        <Text style={[styles.stepValueText, { color: colors.coin }]}>♥ {coins}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                          <CoinSvg width={14} height={14} />
+                          <Text style={[styles.stepValueText, { color: colors.coin }]}>{coins}</Text>
+                        </View>
                       </View>
                       {[10, 100].map((d) => (
                         <TouchableOpacity

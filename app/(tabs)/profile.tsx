@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 
+import CoinSvg from '@/assets/images/coin.svg';
 import { supabase } from '@/lib/supabase';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -122,7 +123,10 @@ export default function ProfileScreen() {
         {/* Stats */}
         <View style={styles.statsRow}>
           <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Text style={[styles.statValue, { color: colors.coin }]}>✦ {user?.coin_balance ?? 0}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <CoinSvg width={18} height={18} />
+              <Text style={[styles.statValue, { color: colors.coin }]}>{user?.coin_balance ?? 0}</Text>
+            </View>
             <Text style={[styles.statLabel, { color: colors.icon }]}>Coins</Text>
           </View>
           <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: '#B7C8BF', borderWidth: 1.5 }]}>

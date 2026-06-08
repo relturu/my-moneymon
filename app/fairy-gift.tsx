@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -16,6 +17,13 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { getDevTest, setDevTest } from '@/lib/dev-test';
 import { useNotifs } from '@/lib/notifications';
 import type { FountainVisit, FairyDefinition, Material, FountainUpgrade, UserFairyCollection } from '@/types/database';
+
+const FAIRY_PORTRAITS: Record<string, any> = {
+  felicity: require('@/assets/images/felicity.png'),
+  mallow:   require('@/assets/images/mallow.png'),
+  pepper:   require('@/assets/images/pepper.png'),
+  webster:  require('@/assets/images/webster.png'),
+};
 
 export default function FairyGiftScreen() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -205,7 +213,9 @@ export default function FairyGiftScreen() {
         {/* Fairy portrait */}
         <View style={styles.fairyArea}>
           <View style={[styles.portrait, { backgroundColor: colors.card, borderColor: colors.tint }]}>
-            <Text style={styles.portraitEmoji}>✨</Text>
+            {fairy.portrait_url && FAIRY_PORTRAITS[fairy.portrait_url]
+              ? <Image source={FAIRY_PORTRAITS[fairy.portrait_url]} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+              : <Text style={styles.portraitEmoji}>✨</Text>}
           </View>
           <Text style={[styles.fairyName, { color: colors.text }]}>{fairy.name}</Text>
           <Text style={[styles.fairyRarity, { color: colors.coin }]}>
@@ -241,12 +251,6 @@ export default function FairyGiftScreen() {
             <Text style={[styles.giftTitle, { color: colors.text }]}>
               {fairy.name} left you a gift!
             </Text>
-            {material ? (
-              <View style={[styles.materialChip, { backgroundColor: colors.background, borderColor: colors.border }]}>
-                <IconSymbol size={16} name="drop.fill" color={colors.tint} />
-                <Text style={[styles.materialName, { color: colors.text }]}>{material.name}</Text>
-              </View>
-            ) : null}
             <TouchableOpacity
               style={[styles.collectButton, { backgroundColor: colors.coin }]}
               onPress={collectGift}

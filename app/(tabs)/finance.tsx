@@ -17,6 +17,7 @@ import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 
 import Svg, { Circle, G, Text as SvgText } from 'react-native-svg';
 
+import CoinSvg from '@/assets/images/coin.svg';
 import { supabase } from '@/lib/supabase';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -387,7 +388,7 @@ export default function FinanceScreen() {
       <View style={styles.topBar}>
         <Text style={[styles.title, { color: colors.text }]}>Finance</Text>
         <View style={[styles.wishBadge, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <IconSymbol size={16} name="heart.fill" color={colors.coin} />
+          <CoinSvg width={16} height={16} />
           <Text style={[styles.wishText, { color: colors.coin }]}>{coinBalance}</Text>
         </View>
       </View>

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, ImageBackground, TouchableOpacity } f
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, router } from 'expo-router';
 
+import CoinSvg from '@/assets/images/coin.svg';
 import { supabase } from '@/lib/supabase';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { getDevTest, clearDevTest } from '@/lib/dev-test';
@@ -78,7 +79,7 @@ export default function InventoryScreen() {
         {/* Coin badge on background */}
         <View style={styles.topArea}>
           <View style={styles.coinBadge}>
-            <IconSymbol size={15} name="heart.fill" color="#FCD34D" />
+            <CoinSvg width={15} height={15} />
             <Text style={styles.coinText}>{coinBalance}</Text>
           </View>
         </View>
