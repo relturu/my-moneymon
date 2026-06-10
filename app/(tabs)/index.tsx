@@ -96,6 +96,7 @@ export default function FountainScreen() {
   const [giftSheetOpen, setGiftSheetOpen] = useState(false);
   const [collectedHistory, setCollectedHistory] = useState<CollectedVisit[]>([]);
   const [tick, setTick] = useState(0); // forces countdown re-render
+  const [coinBadgeHeight, setCoinBadgeHeight] = useState(0);
   const { setFountain, inventory, fairyLog } = useNotifs();
 
   const bottomTranslateY = useSharedValue(0);
@@ -397,36 +398,36 @@ export default function FountainScreen() {
         <View style={styles.topRow}>
           {/* Left: coin badge + quests button + gift button stacked */}
           <View style={styles.topLeft}>
-            <View style={styles.coinBadge}>
-              <CoinSvg width={28} height={28} />
+            <View style={styles.coinBadge} onLayout={e => setCoinBadgeHeight(e.nativeEvent.layout.height)}>
+              <CoinSvg width={36} height={36} />
               <Text style={styles.coinText}>{user?.coin_balance ?? 0}</Text>
             </View>
             <TouchableOpacity
-              style={styles.topIconBtn}
+              style={[styles.topIconBtn, { marginLeft: 12 }]}
               onPress={() => router.push('/quests' as any)}>
-              <QuestSvg width={36} height={36} />
+              <QuestSvg width={44} height={44} />
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.topIconBtn}
+              style={[styles.topIconBtn, { marginLeft: 12 }]}
               onPress={() => setGiftSheetOpen(true)}>
-              <GiftSvg width={36} height={36} />
+              <GiftSvg width={44} height={44} />
               {mailboxVisits.length > 0 && (
                 <View style={styles.mailboxDot} />
               )}
             </TouchableOpacity>
           </View>
           {/* Right: inventory + fairy log buttons */}
-          <View style={styles.topRight}>
+          <View style={[styles.topRight, { marginTop: coinBadgeHeight + 8 }]}>
             <TouchableOpacity
               style={styles.topIconBtn}
               onPress={() => router.push('/(tabs)/inventory' as any)}>
-              <InventorySvg width={36} height={36} />
+              <InventorySvg width={44} height={44} />
               {inventory && <View style={styles.mailboxDot} />}
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.topIconBtn}
               onPress={() => router.push('/(tabs)/fairy-log' as any)}>
-              <FairyLogSvg width={36} height={36} />
+              <FairyLogSvg width={44} height={44} />
               {fairyLog && <View style={styles.mailboxDot} />}
             </TouchableOpacity>
           </View>
@@ -472,14 +473,7 @@ export default function FountainScreen() {
             </View>
           ) : (
             <View style={styles.actions}>
-              {user?.next_toss_available_at && new Date(user.next_toss_available_at).getTime() > Date.now() ? (
-                <>
-                  <Text style={styles.infoText}>Next fairy in</Text>
-                  <Text style={styles.timerText}>{getTimeLeft(user.next_toss_available_at)}</Text>
-                  <Text style={styles.infoText}>Come back soon ✨</Text>
-                </>
-              ) : (
-                <TouchableOpacity
+              <TouchableOpacity
                   style={[styles.primaryButton, { backgroundColor: colors.tint }]}
                   onPress={() => router.push('/toss' as any)}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -487,7 +481,6 @@ export default function FountainScreen() {
                     <Text style={styles.primaryButtonText}>Wish</Text>
                   </View>
                 </TouchableOpacity>
-              )}
 <TouchableOpacity onPress={startDevTest}>
                 <Text style={styles.devTestText}>Test Fairy Material Functionality</Text>
               </TouchableOpacity>
@@ -695,7 +688,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   coinEmoji: { fontSize: 16 },
-  coinText: { fontSize: 36, fontFamily: 'Kanchenjunga_700Bold', color: '#FCD34D' },
+  coinText: { fontSize: 24, fontFamily: 'Kanchenjunga_700Bold', color: '#FCD34D' },
   topIconBtn: {
     width: 44,
     height: 44,
@@ -732,12 +725,12 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     gap: 6,
   },
-  fountainTitle: { fontSize: 22, lineHeight: 38, fontFamily: 'Kanchenjunga_700Bold', color: '#fff', textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
-  levelLabel: { fontSize: 15, fontFamily: 'Kanchenjunga_600SemiBold', color: 'rgba(255,255,255,0.85)' },
+  fountainTitle: { fontSize: 36, lineHeight: 44, fontFamily: 'Kanchenjunga_700Bold', color: '#F1F3EA', textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
+  levelLabel: { fontSize: 16, fontFamily: 'Kanchenjunga_600SemiBold', color: 'rgba(255,255,255,0.85)' },
   xpRow: { gap: 4, marginBottom: 4 },
   xpTrack: { height: 6, borderRadius: 3, overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.3)' },
   xpFill: { height: '100%', borderRadius: 3, backgroundColor: '#fff' },
-  xpLabel: { fontSize: 11, color: 'rgba(255,255,255,0.75)' },
+  xpLabel: { fontSize: 16, fontFamily: 'Kanchenjunga_500Medium', color: 'rgba(255,255,255,0.75)' },
 
   actions: { gap: 8 },
   primaryButton: {
@@ -748,10 +741,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     overflow: 'visible',
   },
-  primaryButtonText: { color: '#fff', fontSize: 17, fontFamily: 'Kanchenjunga_700Bold', paddingRight: 4, lineHeight: 20, includeFontPadding: false },
-  infoText: { fontSize: 13, color: 'rgba(255,255,255,0.85)', textAlign: 'center' },
-  timerText: { fontSize: 22, fontFamily: 'Kanchenjunga_700Bold', color: '#fff', textAlign: 'center' },
-  devTestText: { fontSize: 12, color: 'rgba(255,255,255,0.55)', textAlign: 'center', textDecorationLine: 'underline' },
+  primaryButtonText: { color: '#F1F3EA', fontSize: 16, fontFamily: 'Kanchenjunga_700Bold', paddingRight: 4, lineHeight: 20, includeFontPadding: false },
+  infoText: { fontSize: 16, fontFamily: 'Kanchenjunga_500Medium', color: 'rgba(255,255,255,0.85)', textAlign: 'center' },
+  timerText: { fontSize: 24, fontFamily: 'Kanchenjunga_700Bold', color: '#F1F3EA', textAlign: 'center' },
+  devTestText: { fontSize: 16, fontFamily: 'Kanchenjunga_500Medium', color: 'rgba(255,255,255,0.55)', textAlign: 'center', textDecorationLine: 'underline' },
 
   // Bottom sheet
   scrim: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
@@ -775,21 +768,21 @@ const styles = StyleSheet.create({
   },
   portraitEmoji: { fontSize: 32 },
   sheetHeaderInfo: { flex: 1, gap: 4 },
-  sheetFairyName: { fontSize: 22, fontFamily: 'Kanchenjunga_700Bold' },
-  sheetRarity: { fontSize: 18 },
-  sheetTimer: { fontSize: 13 },
+  sheetFairyName: { fontSize: 24, fontFamily: 'Kanchenjunga_700Bold' },
+  sheetRarity: { fontSize: 16, fontFamily: 'Kanchenjunga_500Medium' },
+  sheetTimer: { fontSize: 16, fontFamily: 'Kanchenjunga_500Medium' },
 
   friendshipRow: { gap: 8 },
-  friendshipLabel: { fontSize: 15, fontWeight: '600' },
+  friendshipLabel: { fontSize: 16, fontFamily: 'Kanchenjunga_600SemiBold' },
   friendshipTrack: { height: 10, borderRadius: 5, overflow: 'hidden' },
   friendshipFill: { height: '100%', borderRadius: 5 },
 
   patButton: { borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
-  patButtonText: { fontSize: 16, fontWeight: '700' },
-  cooldownText: { fontSize: 13, textAlign: 'center' },
+  patButtonText: { fontSize: 16, fontFamily: 'Kanchenjunga_700Bold' },
+  cooldownText: { fontSize: 16, fontFamily: 'Kanchenjunga_500Medium', textAlign: 'center' },
 
   dropsRow: { gap: 6 },
-  dropsLabel: { fontSize: 13, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  dropsLabel: { fontSize: 16, fontFamily: 'Kanchenjunga_600SemiBold', textTransform: 'uppercase', letterSpacing: 0.5 },
   dropChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -800,8 +793,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignSelf: 'flex-start',
   },
-  dropText: { fontSize: 14 },
-  dropHint: { fontSize: 12, fontStyle: 'italic' },
+  dropText: { fontSize: 16, fontFamily: 'Kanchenjunga_500Medium' },
+  dropHint: { fontSize: 16, fontFamily: 'Kanchenjunga_500Medium', fontStyle: 'italic' },
 
   shooButton: {
     borderRadius: 12,
@@ -809,11 +802,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
   },
-  shooButtonText: { fontSize: 14, fontWeight: '500' },
+  shooButtonText: { fontSize: 16, fontFamily: 'Kanchenjunga_500Medium' },
 
   // Gift history sheet
   giftSheetTitle: { fontSize: 20, fontFamily: 'Kanchenjunga_700Bold', marginBottom: 4 },
-  giftSectionLabel: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8, marginTop: 4 },
+  giftSectionLabel: { fontSize: 16, fontFamily: 'Kanchenjunga_600SemiBold', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8, marginTop: 4 },
   giftRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -822,8 +815,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   giftRowPortrait: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  giftRowName: { fontSize: 15, fontFamily: 'Kanchenjunga_700Bold' },
-  giftRowSub: { fontSize: 12, marginTop: 2 },
-  giftRowAction: { fontSize: 14, fontWeight: '600' },
-  giftEmptyText: { fontSize: 14, textAlign: 'center', marginTop: 24, fontStyle: 'italic' },
+  giftRowName: { fontSize: 16, fontFamily: 'Kanchenjunga_700Bold' },
+  giftRowSub: { fontSize: 16, fontFamily: 'Kanchenjunga_500Medium', marginTop: 2 },
+  giftRowAction: { fontSize: 16, fontFamily: 'Kanchenjunga_600SemiBold' },
+  giftEmptyText: { fontSize: 16, fontFamily: 'Kanchenjunga_500Medium', textAlign: 'center', marginTop: 24, fontStyle: 'italic' },
 });
