@@ -17,8 +17,6 @@ import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
 import CoinSvg from '@/assets/images/coin.svg';
-import GiftSvg from '@/assets/images/gift.svg';
-import QuestSvg from '@/assets/images/quest.svg';
 import { supabase } from '@/lib/supabase';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -390,7 +388,7 @@ export default function FountainScreen() {
 
         {/* Top row: coin+quests left, mailbox right */}
         <View style={styles.topRow}>
-          {/* Left: coin badge + quests button + gift button stacked */}
+          {/* Left: coin badge + quests button stacked */}
           <View style={styles.topLeft}>
             <View style={styles.coinBadge}>
               <CoinSvg width={18} height={18} />
@@ -399,17 +397,19 @@ export default function FountainScreen() {
             <TouchableOpacity
               style={styles.topIconBtn}
               onPress={() => router.push('/quests' as any)}>
-              <QuestSvg width={30} height={30} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.topIconBtn}
-              onPress={() => setGiftSheetOpen(true)}>
-              <GiftSvg width={30} height={30} />
-              {mailboxVisits.length > 0 && (
-                <View style={styles.mailboxDot} />
-              )}
+              <Text style={styles.topIconEmoji}>🗺️</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Right: mailbox */}
+          <TouchableOpacity
+            style={styles.topIconBtn}
+            onPress={() => setGiftSheetOpen(true)}>
+            <Text style={styles.topIconEmoji}>🎁</Text>
+            {mailboxVisits.length > 0 && (
+              <View style={styles.mailboxDot} />
+            )}
+          </TouchableOpacity>
         </View>
 
         {/* Middle spacer — fairy bubble if visiting */}
@@ -447,8 +447,16 @@ export default function FountainScreen() {
 
           {activeFairy ? (
             <View style={styles.actions}>
-              {!activeFairy.materials_claimed && (
-                <Text style={styles.infoText}>{nextConvoText(activeFairy)}</Text>
+              {activeFairy.materials_claimed ? (
+                <>
+                  <Text style={styles.infoText}>✓ Gift collected · {activeFairy.fairy.name} is still visiting</Text>
+                  <Text style={styles.timerText}>Leaves in {getTimeLeft(activeFairy.departs_at)}</Text>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.infoText}>{nextConvoText(activeFairy)}</Text>
+                  <Text style={styles.timerText}>Leaves in {getTimeLeft(activeFairy.departs_at)}</Text>
+                </>
               )}
             </View>
           ) : (
@@ -469,6 +477,9 @@ export default function FountainScreen() {
                   </View>
                 </TouchableOpacity>
               )}
+              <Text style={styles.infoText}>
+                {currentLevel?.fairy_slots ?? 1} fairy slot{(currentLevel?.fairy_slots ?? 1) > 1 ? 's' : ''} · Level {fountainLevel}
+              </Text>
               <TouchableOpacity onPress={startDevTest}>
                 <Text style={styles.devTestText}>Test Fairy Material Functionality</Text>
               </TouchableOpacity>
@@ -670,6 +681,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    backgroundColor: 'rgba(0,0,0,0.28)',
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 7,
@@ -680,6 +692,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.28)',
     alignItems: 'center',
     justifyContent: 'center',
   },
