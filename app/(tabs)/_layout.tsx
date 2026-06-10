@@ -67,22 +67,22 @@ export default function TabLayout() {
           tabBarActiveTintColor: colors.tint,
           tabBarInactiveTintColor: colors.tabIconDefault,
           tabBarStyle: {
-            position: 'absolute',
-            backgroundColor: 'transparent',
+            backgroundColor: '#F1F3EA',
             borderTopWidth: 0,
             elevation: 0,
             shadowOpacity: 0,
+            height: 100,
+            paddingBottom: 16,
+            paddingTop: 10,
           },
-          tabBarBackground: () => (
-            <View style={{
-              flex: 1,
-              marginHorizontal: 20,
-              marginTop: 0,
-              borderRadius: 24,
-              backgroundColor: 'rgba(255,255,255,0.45)',
-              overflow: 'hidden',
-            }} />
-          ),
+          tabBarLabelStyle: {
+            fontSize: 16,
+            fontFamily: 'Kanchenjunga_600SemiBold',
+            marginTop: 8,
+          },
+          tabBarItemStyle: {
+            flex: 1,
+          },
           headerShown: false,
           tabBarButton: HapticTab,
         }}>
@@ -99,7 +99,7 @@ export default function TabLayout() {
           options={{
             title: 'Finance',
             tabBarIcon: () => (
-              <FinanceSvg width={26} height={26} />
+              <FinanceSvg width={44} height={44} />
             ),
           }}
         />
@@ -109,7 +109,7 @@ export default function TabLayout() {
             title: 'Home',
             tabBarIcon: ({ color }) => (
               <View style={{ position: 'relative' }}>
-                <IconSymbol size={26} name="sparkles" color={color} />
+                <IconSymbol size={44} name="sparkles" color={color} />
                 {fountain && <View style={dot(colors.background)} />}
               </View>
             ),
@@ -118,9 +118,9 @@ export default function TabLayout() {
         <Tabs.Screen
           name="profile"
           options={{
-            title: 'Me',
+            title: 'Profile',
             tabBarIcon: () => (
-              <ProfileSvg width={26} height={26} />
+              <ProfileSvg width={44} height={44} />
             ),
           }}
         />
