@@ -1,29 +1,31 @@
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
   FlatList,
+  Image,
+  ImageBackground,
+  StyleSheet,
+  Text,
   TouchableOpacity,
   useWindowDimensions,
-  ImageBackground,
-  Image,
+  View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const FAIRY_PORTRAITS: Record<string, any> = {
   felicity: require('@/assets/images/felicity.png'),
   mallow:   require('@/assets/images/mallow.png'),
+  pearl:    require('@/assets/images/pearl.png'),
   pepper:   require('@/assets/images/pepper.png'),
   webster:  require('@/assets/images/webster.png'),
 };
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useFocusEffect } from 'expo-router';
+const LOCKED_FAIRY = require('@/assets/images/lockedFairy.png');
 
 import CoinSvg from '@/assets/images/coin.svg';
-import { supabase } from '@/lib/supabase';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { getDevTest, setDevTest } from '@/lib/dev-test';
 import { useNotifs } from '@/lib/notifications';
+import { supabase } from '@/lib/supabase';
 import type { FairyDefinition, UserFairyCollection } from '@/types/database';
 
 type FairyEntry = FairyDefinition & {
@@ -122,7 +124,7 @@ export default function FairyLogScreen() {
       return (
         <View style={[styles.card, { backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.10)', opacity: 0.65 }]}>
           <View style={[styles.portrait, { backgroundColor: 'rgba(255,255,255,0.12)' }]}>
-            <Text style={styles.portraitEmoji}>🥚</Text>
+            <Image source={LOCKED_FAIRY} style={{ width: '85%', height: '85%' }} resizeMode="contain" />
           </View>
           <Text style={[styles.fairyName, { color: 'rgba(255,255,255,0.4)' }]}>???</Text>
         </View>
@@ -149,7 +151,9 @@ export default function FairyLogScreen() {
         ]}>
           {fairy.discovered && fairy.portrait_url && FAIRY_PORTRAITS[fairy.portrait_url]
             ? <Image source={FAIRY_PORTRAITS[fairy.portrait_url]} style={{ width: '85%', height: '85%' }} resizeMode="contain" />
-            : <Text style={styles.portraitEmoji}>{fairy.discovered ? '✨' : '🥚'}</Text>}
+            : fairy.discovered
+              ? <Text style={styles.portraitEmoji}>✨</Text>
+              : <Image source={LOCKED_FAIRY} style={{ width: '85%', height: '85%' }} resizeMode="contain" />}
         </View>
 
         <Text
@@ -216,16 +220,8 @@ export default function FairyLogScreen() {
             )}
           />
 
-          {/* Bottom bar: Prev | dots | Next */}
+          {/* Bottom bar: dots */}
           <View style={styles.bottomBar}>
-            <TouchableOpacity
-              style={[styles.navBtn, currentPage === 0 && styles.navBtnDisabled]}
-              onPress={() => goToPage(currentPage - 1)}
-              disabled={currentPage === 0}>
-              <IconSymbol size={16} name="arrow.left" color="#fff" />
-              <Text style={styles.navBtnText}>Prev</Text>
-            </TouchableOpacity>
-
             <View style={styles.dots}>
               {pages.map((_, i) => (
                 <TouchableOpacity key={i} onPress={() => goToPage(i)}>
@@ -233,14 +229,6 @@ export default function FairyLogScreen() {
                 </TouchableOpacity>
               ))}
             </View>
-
-            <TouchableOpacity
-              style={[styles.navBtn, currentPage >= totalPages - 1 && styles.navBtnDisabled]}
-              onPress={() => goToPage(currentPage + 1)}
-              disabled={currentPage >= totalPages - 1}>
-              <Text style={styles.navBtnText}>Next</Text>
-              <IconSymbol size={16} name="chevron.right" color="#fff" />
-            </TouchableOpacity>
           </View>
 
         </View>
@@ -338,13 +326,8 @@ const styles = StyleSheet.create({
   fairyName: { fontSize: 15, fontFamily: 'Kanchenjunga_600SemiBold', textAlign: 'center' },
 
   bottomBar: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
     paddingVertical: 14,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.08)',
   },
   dots: {
     flexDirection: 'row',

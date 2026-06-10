@@ -53,7 +53,7 @@ INSERT INTO fairy_definitions (name, rarity, lore, material_drop_type, portrait_
   ('Felicity','common',    'A cheery fairy in a blue coat who brings good luck to careful spenders.',           'Clover Leaf',   'felicity', 12),
   ('Mallow',  'uncommon',  'A soft-spoken fairy with big ears who loves warm places and cozy things.',          'Feather',       'mallow',   18),
   ('Pepper',  'rare',      'A fiery red-haired fairy who visits in bursts of energy. Hard to catch.',          'Star Fragment', 'pepper',   24),
-  ('Pearl',   'legendary', 'A serene fairy of the deep tide. She appears only to the most devoted fountains.', 'Prism Crystal', null,       48);
+  ('Pearl',   'legendary', 'A serene fairy of the deep tide. She appears only to the most devoted fountains.', 'Prism Crystal', 'pearl',    48);
 
 -- ============================================================
 -- Quest Definitions
