@@ -416,7 +416,7 @@ export default function AdminTestPanel({ userId, userEmail }: Props) {
 const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
-    bottom: 90,
+    bottom: 180,
     right: 16,
     width: 48,
     height: 48,

@@ -1,14 +1,16 @@
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
   FlatList,
+  Image,
+  ImageBackground,
+  StyleSheet,
+  Text,
   TouchableOpacity,
   useWindowDimensions,
-  ImageBackground,
-  Image,
+  View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const FAIRY_PORTRAITS: Record<string, any> = {
   felicity: require('@/assets/images/felicity.png'),
@@ -18,14 +20,12 @@ const FAIRY_PORTRAITS: Record<string, any> = {
   webster:  require('@/assets/images/webster.png'),
 };
 const LOCKED_FAIRY = require('@/assets/images/lockedFairy.png');
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useFocusEffect } from 'expo-router';
 
 import CoinSvg from '@/assets/images/coin.svg';
-import { supabase } from '@/lib/supabase';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { getDevTest, setDevTest } from '@/lib/dev-test';
 import { useNotifs } from '@/lib/notifications';
+import { supabase } from '@/lib/supabase';
 import type { FairyDefinition, UserFairyCollection } from '@/types/database';
 
 type FairyEntry = FairyDefinition & {

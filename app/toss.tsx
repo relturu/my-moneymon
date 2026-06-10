@@ -20,7 +20,7 @@ import { captureSnapshot } from '@/lib/admin';
 import type { User, FairyDefinition } from '@/types/database';
 import type { Rarity } from '@/types/database';
 
-const AMOUNTS = [25, 50, 100, 200, 300, 500];
+const MIN_COINS = 1;
 
 const RARITY_LABELS: Record<Rarity, string> = {
   common: 'Common ★',
@@ -43,7 +43,7 @@ function getAvailableRarities(level: number): Rarity[] {
 }
 
 function computeOdds(amount: number, availableRarities: Rarity[]): Partial<Record<Rarity, number>> {
-  const t = Math.max(0, Math.min(1, (amount - 25) / 475));
+  const t = Math.max(0, Math.min(1, (amount - 1) / 9));
   const base: Record<Rarity, number> = {
     common: 70 - t * 45,
     rare: 20 + t * 5,
@@ -73,7 +73,7 @@ export default function TossScreen() {
   const colors = Colors[colorScheme];
 
   const [user, setUser] = useState<User | null>(null);
-  const [amount, setAmount] = useState(100);
+  const [amount, setAmount] = useState(1);
   const [tossing, setTossing] = useState(false);
 
   useEffect(() => {
@@ -150,7 +150,7 @@ export default function TossScreen() {
       user_id: authUser.id,
       amount: -amount,
       source_type: 'fountain_toss',
-      description: `Tossed ${amount} wishes for ${fairy.name}`,
+      description: `Tossed ${amount} coin${amount !== 1 ? 's' : ''} for a wish (${fairy.name})`,
     } as any);
 
     // Clear the toss cooldown — it will be set again when this fairy leaves
@@ -191,34 +191,33 @@ export default function TossScreen() {
 
         {/* Amount selector */}
         <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.sectionLabel, { color: colors.icon }]}>WISHES TO TOSS</Text>
-          <View style={[styles.amountDisplay, { borderColor: colors.border }]}>
-            <CoinSvg width={20} height={20} />
-            <Text style={[styles.amountText, { color: colors.coin }]}>{amount}</Text>
-          </View>
-          <View style={styles.amountGrid}>
-            {AMOUNTS.map((a) => (
-              <TouchableOpacity
-                key={a}
-                style={[
-                  styles.amountChip,
-                  {
-                    backgroundColor: amount === a ? colors.tint : colors.background,
-                    borderColor: amount === a ? colors.tint : colors.border,
-                  },
-                ]}
-                onPress={() => setAmount(a)}>
-                <Text style={[
-                  styles.amountChipText,
-                  { color: amount === a ? '#fff' : colors.text },
-                ]}>
-                  {a}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          <Text style={[styles.sectionLabel, { color: colors.icon }]}>COINS TO TOSS</Text>
+          <View style={styles.stepper}>
+            <TouchableOpacity
+              style={[styles.stepBtn, { backgroundColor: colors.background, borderColor: colors.border }]}
+              onPress={() => setAmount(a => Math.max(MIN_COINS, a - 1))}>
+              <Text style={[styles.stepBtnText, { color: colors.text }]}>−</Text>
+            </TouchableOpacity>
+            <View style={[styles.amountDisplay, { borderColor: colors.border, flex: 1 }]}>
+              <CoinSvg width={20} height={20} />
+              <Text style={[styles.amountText, { color: colors.coin }]}>{amount}</Text>
+            </View>
+            <TouchableOpacity
+              style={[
+                styles.stepBtn,
+                {
+                  backgroundColor: colors.background,
+                  borderColor: colors.border,
+                  opacity: amount >= (user?.coin_balance ?? 0) ? 0.4 : 1,
+                },
+              ]}
+              onPress={() => setAmount(a => Math.min(user?.coin_balance ?? MIN_COINS, a + 1))}
+              disabled={amount >= (user?.coin_balance ?? 0)}>
+              <Text style={[styles.stepBtnText, { color: colors.text }]}>+</Text>
+            </TouchableOpacity>
           </View>
           <Text style={[styles.helperText, { color: colors.icon }]}>
-            Tossing {amount} wishes — higher amounts improve your odds
+            1 wish · {amount} coin{amount !== 1 ? 's' : ''} — more coins improve your odds
           </Text>
         </View>
 
@@ -246,7 +245,7 @@ export default function TossScreen() {
         {!canAfford && (
           <View style={[styles.warningCard, { backgroundColor: colors.card, borderColor: colors.expense }]}>
             <Text style={[styles.warningText, { color: colors.expense }]}>
-              Not enough wishes. Complete quests to earn more!
+              Not enough coins. Complete quests to earn more!
             </Text>
           </View>
         )}
@@ -267,7 +266,7 @@ export default function TossScreen() {
             : (
               <>
                 <IconSymbol size={20} name="heart.fill" color="#fff" />
-                <Text style={styles.tossButtonText}>Toss {amount} Wishes</Text>
+                <Text style={styles.tossButtonText}>Make a Wish · {amount} coin{amount !== 1 ? 's' : ''}</Text>
               </>
             )}
         </TouchableOpacity>
@@ -339,18 +338,20 @@ const styles = StyleSheet.create({
   },
   amountText: { fontSize: 36, fontFamily: 'Kanchenjunga_700Bold' },
 
-  amountGrid: {
+  stepper: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+    alignItems: 'center',
+    gap: 10,
   },
-  amountChip: {
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 20,
-    borderWidth: 1.5,
+  stepBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  amountChipText: { fontSize: 15, fontFamily: 'Kanchenjunga_600SemiBold' },
+  stepBtnText: { fontSize: 24, lineHeight: 28, fontFamily: 'Kanchenjunga_700Bold' },
 
   helperText: { fontSize: 13, textAlign: 'center' },
 

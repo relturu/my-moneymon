@@ -440,7 +440,7 @@ export default function FountainScreen() {
                 <View style={[styles.xpFill, { width: `${Math.round(xpProgress * 100)}%` as any }]} />
               </View>
               <Text style={styles.xpLabel}>
-                {user?.fountain_xp ?? 0} / {nextLevel.xp_required} XP
+                {user?.fountain_xp ?? 0} / {nextLevel.xp_required}XP
               </Text>
             </View>
           )}
@@ -727,10 +727,11 @@ const styles = StyleSheet.create({
   // Bottom overlay — white text info
   bottomOverlay: {
     paddingHorizontal: 20,
+    paddingTop: 8,
     paddingBottom: 16,
     gap: 6,
   },
-  fountainTitle: { fontSize: 22, fontFamily: 'Kanchenjunga_700Bold', color: '#fff', textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
+  fountainTitle: { fontSize: 22, lineHeight: 38, fontFamily: 'Kanchenjunga_700Bold', color: '#fff', textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
   levelLabel: { fontSize: 15, fontFamily: 'Kanchenjunga_600SemiBold', color: 'rgba(255,255,255,0.85)' },
   xpRow: { gap: 4, marginBottom: 4 },
   xpTrack: { height: 6, borderRadius: 3, overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.3)' },
@@ -743,8 +744,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 16,
     paddingVertical: 16,
+    paddingHorizontal: 20,
+    overflow: 'visible',
   },
-  primaryButtonText: { color: '#fff', fontSize: 17, fontFamily: 'Kanchenjunga_700Bold' },
+  primaryButtonText: { color: '#fff', fontSize: 17, fontFamily: 'Kanchenjunga_700Bold', paddingRight: 4 },
   infoText: { fontSize: 13, color: 'rgba(255,255,255,0.85)', textAlign: 'center' },
   timerText: { fontSize: 22, fontFamily: 'Kanchenjunga_700Bold', color: '#fff', textAlign: 'center' },
   devTestText: { fontSize: 12, color: 'rgba(255,255,255,0.55)', textAlign: 'center', textDecorationLine: 'underline' },
