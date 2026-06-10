@@ -111,7 +111,7 @@ export default function ProfileScreen() {
 
         {/* Avatar + name */}
         <View style={styles.avatarSection}>
-          <View style={[styles.avatar, { backgroundColor: '#425F4D' }]}>
+          <View style={[styles.avatar, { backgroundColor: '#425F4F' }]}>
             <Text style={styles.avatarText}>{initials}</Text>
           </View>
           <Text style={[styles.displayName, { color: colors.text }]}>
@@ -129,23 +129,23 @@ export default function ProfileScreen() {
             </View>
             <Text style={[styles.statLabel, { color: colors.icon }]}>Coins</Text>
           </View>
-          <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: '#B7C8BF', borderWidth: 1.5 }]}>
-            <Text style={[styles.statValue, { color: '#69835C' }]}>Lv. {user?.fountain_level ?? 1}</Text>
+          <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1.5 }]}>
+            <Text style={[styles.statValue, { color: '#5B9CDC' }]}>Lv. {user?.fountain_level ?? 1}</Text>
             <Text style={[styles.statLabel, { color: colors.icon }]}>Fountain</Text>
           </View>
-          <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: '#B7C8BF', borderWidth: 1.5 }]}>
-            <Text style={[styles.statValue, { color: '#69835C' }]}>{user?.fountain_xp ?? 0}</Text>
+          <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: 1.5 }]}>
+            <Text style={[styles.statValue, { color: '#5B9CDC' }]}>{user?.fountain_xp ?? 0}</Text>
             <Text style={[styles.statLabel, { color: colors.icon }]}>XP</Text>
           </View>
         </View>
 
         {/* Edit info */}
-        <View style={[styles.section, { backgroundColor: colors.card, borderColor: '#B7C8BF' }]}>
-          <View style={[styles.sectionHeader, { backgroundColor: 'rgba(183,200,191,0.18)' }]}>
-            <Text style={[styles.sectionTitle, { color: '#425F4D' }]}>Account Info</Text>
+        <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={[styles.sectionHeader, { backgroundColor: 'rgba(105,131,92,0.12)' }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Account Info</Text>
             {!editing ? (
               <TouchableOpacity onPress={startEditing}>
-                <Text style={[styles.editLink, { color: '#69835C' }]}>Edit</Text>
+                <Text style={[styles.editLink, { color: colors.tint }]}>Edit</Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity onPress={cancelEditing}>
@@ -159,7 +159,7 @@ export default function ProfileScreen() {
             <Text style={[styles.fieldLabel, { color: colors.icon }]}>Username</Text>
             {editing ? (
               <TextInput
-                style={[styles.fieldInput, { color: colors.text, borderColor: '#69835C' }]}
+                style={[styles.fieldInput, { color: colors.text, borderColor: colors.tint }]}
                 value={draftUsername}
                 onChangeText={setDraftUsername}
                 autoCapitalize="none"
@@ -184,7 +184,7 @@ export default function ProfileScreen() {
 
           {editing && (
             <TouchableOpacity
-              style={[styles.saveButton, { backgroundColor: '#425F4D' }]}
+              style={[styles.saveButton, { backgroundColor: '#425F4F' }]}
               onPress={saveChanges}
               disabled={saving}>
               {saving

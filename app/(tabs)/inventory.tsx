@@ -15,7 +15,7 @@ type InventoryItem = UserInventory & { material: Material | null };
 const RARITY_COLOR: Record<string, string> = {
   common: '#A8A29E',
   rare: '#10B981',
-  mythical: '#7C3AED',
+  mythical: '#5B9CDC',
   legendary: '#F59E0B',
 };
 
