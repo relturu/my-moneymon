@@ -28,6 +28,7 @@ const FAIRY_DIALOGUE: Record<string, string[]> = {
 const FAIRY_PORTRAITS: Record<string, any> = {
   felicity: require('@/assets/images/felicity.png'),
   mallow:   require('@/assets/images/mallow.png'),
+  pearl:    require('@/assets/images/pearl.png'),
   pepper:   require('@/assets/images/pepper.png'),
   webster:  require('@/assets/images/webster.png'),
 };

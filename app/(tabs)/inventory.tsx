@@ -91,7 +91,7 @@ export default function InventoryScreen() {
           {/* Panel header with back button */}
           <View style={styles.panelHeader}>
             <TouchableOpacity style={styles.backBtn} onPress={() => router.navigate('/(tabs)')}>
-              <IconSymbol size={20} name="arrow.left" color="#fff" />
+              <IconSymbol size={20} name="arrow.left" color="#2A3A1E" />
             </TouchableOpacity>
             <Text style={styles.panelTitle}>Inventory</Text>
           </View>
@@ -179,14 +179,14 @@ const styles = StyleSheet.create({
 
   panel: {
     flex: 1,
-    backgroundColor: '#2A3E34',
+    backgroundColor: '#E8EDE4',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     paddingTop: 12,
   },
   handle: {
     width: 40, height: 4, borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: 'rgba(0,0,0,0.12)',
     alignSelf: 'center',
     marginBottom: 14,
   },
@@ -200,19 +200,19 @@ const styles = StyleSheet.create({
   backBtn: {
     width: 40, height: 40,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(0,0,0,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   panelTitle: {
     fontSize: 28,
     fontFamily: 'Kanchenjunga_700Bold',
-    color: '#fff',
+    color: '#425F4F',
   },
 
   list: { paddingHorizontal: 20, paddingBottom: 32, paddingTop: 8 },
   listEmpty: { flex: 1 },
-  divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginVertical: 14 },
+  divider: { height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginVertical: 14 },
 
   itemRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   thumbWrap: { position: 'relative', flexShrink: 0 },
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     width: 80, height: 80,
     borderRadius: 16,
     borderWidth: 1.5,
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: 'rgba(0,0,0,0.04)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -235,13 +235,13 @@ const styles = StyleSheet.create({
   qtyText: { fontSize: 12, fontFamily: 'Kanchenjunga_700Bold', color: '#fff' },
 
   info: { flex: 1, gap: 3 },
-  itemName: { fontSize: 20, fontFamily: 'Kanchenjunga_700Bold', color: '#fff' },
+  itemName: { fontSize: 20, fontFamily: 'Kanchenjunga_700Bold', color: '#425F4F' },
   expText: { fontSize: 14, fontFamily: 'Kanchenjunga_600SemiBold', color: '#FCD34D' },
-  itemDesc: { fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 18 },
+  itemDesc: { fontSize: 13, color: 'rgba(0,0,0,0.5)', lineHeight: 18 },
   rarityTag: { fontSize: 12, fontFamily: 'Kanchenjunga_500Medium', marginTop: 2 },
 
   emptyContent: { alignItems: 'center', gap: 12, paddingTop: 60 },
   emptyEmoji: { fontSize: 48 },
-  emptyTitle: { fontSize: 18, fontFamily: 'Kanchenjunga_600SemiBold', color: '#fff' },
-  emptyHint: { fontSize: 14, textAlign: 'center', paddingHorizontal: 32, color: 'rgba(255,255,255,0.6)' },
+  emptyTitle: { fontSize: 18, fontFamily: 'Kanchenjunga_600SemiBold', color: '#425F4F' },
+  emptyHint: { fontSize: 14, textAlign: 'center', paddingHorizontal: 32, color: 'rgba(0,0,0,0.45)' },
 });

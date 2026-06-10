@@ -7,8 +7,6 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import ProfileSvg from '@/assets/images/profile.svg';
 import FinanceSvg from '@/assets/images/finance.svg';
-import InventorySvg from '@/assets/images/inventory.svg';
-import FairyLogSvg from '@/assets/images/fairyLog.svg';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { supabase } from '@/lib/supabase';
 import { useNotifs } from '@/lib/notifications';
@@ -20,7 +18,7 @@ const DOT_COLOR = '#EF4444';
 export default function TabLayout() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
-  const { fountain, inventory, fairyLog, setFountain } = useNotifs();
+  const { fountain, setFountain } = useNotifs();
   const [adminUserId, setAdminUserId] = useState<string | null>(null);
   const [adminEmail, setAdminEmail] = useState<string | null>(null);
 
@@ -68,31 +66,40 @@ export default function TabLayout() {
         screenOptions={{
           tabBarActiveTintColor: colors.tint,
           tabBarInactiveTintColor: colors.tabIconDefault,
-          tabBarStyle: { backgroundColor: colors.background },
+          tabBarStyle: {
+            position: 'absolute',
+            backgroundColor: 'transparent',
+            borderTopWidth: 0,
+            elevation: 0,
+            shadowOpacity: 0,
+          },
+          tabBarBackground: () => (
+            <View style={{
+              flex: 1,
+              marginHorizontal: 20,
+              marginTop: 0,
+              borderRadius: 24,
+              backgroundColor: 'rgba(255,255,255,0.45)',
+              overflow: 'hidden',
+            }} />
+          ),
           headerShown: false,
           tabBarButton: HapticTab,
         }}>
         <Tabs.Screen
           name="inventory"
-          options={{
-            title: 'Inventory',
-            tabBarIcon: () => (
-              <View style={{ position: 'relative' }}>
-                <InventorySvg width={26} height={26} />
-                {inventory && <View style={dot(colors.background)} />}
-              </View>
-            ),
-          }}
+          options={{ href: null }}
         />
         <Tabs.Screen
           name="fairy-log"
+          options={{ href: null }}
+        />
+        <Tabs.Screen
+          name="finance"
           options={{
-            title: 'Fairy Log',
+            title: 'Finance',
             tabBarIcon: () => (
-              <View style={{ position: 'relative' }}>
-                <FairyLogSvg width={26} height={26} />
-                {fairyLog && <View style={dot(colors.background)} />}
-              </View>
+              <FinanceSvg width={26} height={26} />
             ),
           }}
         />
@@ -105,15 +112,6 @@ export default function TabLayout() {
                 <IconSymbol size={26} name="sparkles" color={color} />
                 {fountain && <View style={dot(colors.background)} />}
               </View>
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="finance"
-          options={{
-            title: 'Finance',
-            tabBarIcon: () => (
-              <FinanceSvg width={26} height={26} />
             ),
           }}
         />
