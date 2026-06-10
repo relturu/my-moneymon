@@ -21,6 +21,7 @@ import type { FountainVisit, FairyDefinition, Material, FountainUpgrade, UserFai
 const FAIRY_PORTRAITS: Record<string, any> = {
   felicity: require('@/assets/images/felicity.png'),
   mallow:   require('@/assets/images/mallow.png'),
+  pearl:    require('@/assets/images/pearl.png'),
   pepper:   require('@/assets/images/pepper.png'),
   webster:  require('@/assets/images/webster.png'),
 };

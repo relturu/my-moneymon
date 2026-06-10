@@ -61,6 +61,7 @@ const MAX_CONVOS = 3;
 const FAIRY_PORTRAITS: Record<string, any> = {
   felicity: require('@/assets/images/felicity.png'),
   mallow:   require('@/assets/images/mallow.png'),
+  pearl:    require('@/assets/images/pearl.png'),
   pepper:   require('@/assets/images/pepper.png'),
   webster:  require('@/assets/images/webster.png'),
 };
@@ -581,32 +582,32 @@ export default function FountainScreen() {
         onRequestClose={() => setGiftSheetOpen(false)}>
         <Pressable style={styles.scrim} onPress={() => setGiftSheetOpen(false)}>
           <Pressable
-            style={[styles.sheet, { backgroundColor: colors.card }]}
+            style={[styles.sheet, { backgroundColor: '#E8EDE4' }]}
             onPress={(e) => e.stopPropagation()}>
 
-            <View style={[styles.handle, { backgroundColor: colors.border }]} />
-            <Text style={[styles.giftSheetTitle, { color: colors.text }]}>Gift Mailbox</Text>
+            <View style={[styles.handle, { backgroundColor: 'rgba(0,0,0,0.12)' }]} />
+            <Text style={[styles.giftSheetTitle, { color: '#2A3A1E' }]}>Gift Mailbox</Text>
 
             <ScrollView showsVerticalScrollIndicator={false}>
 
               {mailboxVisits.length > 0 && (
                 <>
-                  <Text style={[styles.giftSectionLabel, { color: colors.icon }]}>PENDING</Text>
+                  <Text style={[styles.giftSectionLabel, { color: 'rgba(0,0,0,0.45)' }]}>PENDING</Text>
                   {mailboxVisits.map(v => (
                     <TouchableOpacity
                       key={v.id}
-                      style={[styles.giftRow, { borderColor: colors.border }]}
+                      style={[styles.giftRow, { borderColor: 'rgba(0,0,0,0.06)' }]}
                       onPress={() => { setGiftSheetOpen(false); router.push(`/fairy-gift?visitId=${v.id}` as any); }}>
-                      <View style={[styles.giftRowPortrait, { backgroundColor: colors.background }]}>
+                      <View style={[styles.giftRowPortrait, { backgroundColor: 'rgba(0,0,0,0.05)' }]}>
                         {v.fairy.portrait_url && FAIRY_PORTRAITS[v.fairy.portrait_url]
                           ? <Image source={FAIRY_PORTRAITS[v.fairy.portrait_url]} style={{ width: '100%', height: '100%', borderRadius: 20 }} resizeMode="contain" />
                           : <Text style={{ fontSize: 18 }}>✨</Text>}
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={[styles.giftRowName, { color: colors.text }]}>{v.fairy.name}</Text>
-                        <Text style={[styles.giftRowSub, { color: colors.icon }]}>Gift ready to open</Text>
+                        <Text style={[styles.giftRowName, { color: '#2A3A1E' }]}>{v.fairy.name}</Text>
+                        <Text style={[styles.giftRowSub, { color: 'rgba(0,0,0,0.45)' }]}>Gift ready to open</Text>
                       </View>
-                      <Text style={[styles.giftRowAction, { color: colors.tint }]}>Open →</Text>
+                      <Text style={[styles.giftRowAction, { color: '#425F4F' }]}>Open →</Text>
                     </TouchableOpacity>
                   ))}
                 </>
@@ -614,28 +615,28 @@ export default function FountainScreen() {
 
               {collectedHistory.length > 0 && (
                 <>
-                  <Text style={[styles.giftSectionLabel, { color: colors.icon }]}>COLLECTED</Text>
+                  <Text style={[styles.giftSectionLabel, { color: 'rgba(0,0,0,0.45)' }]}>COLLECTED</Text>
                   {collectedHistory.map(v => (
-                    <View key={v.id} style={[styles.giftRow, { borderColor: colors.border }]}>
-                      <View style={[styles.giftRowPortrait, { backgroundColor: colors.background }]}>
+                    <View key={v.id} style={[styles.giftRow, { borderColor: 'rgba(0,0,0,0.06)' }]}>
+                      <View style={[styles.giftRowPortrait, { backgroundColor: 'rgba(0,0,0,0.05)' }]}>
                         {v.fairy.portrait_url && FAIRY_PORTRAITS[v.fairy.portrait_url]
                           ? <Image source={FAIRY_PORTRAITS[v.fairy.portrait_url]} style={{ width: '100%', height: '100%', borderRadius: 20 }} resizeMode="contain" />
                           : <Text style={{ fontSize: 18 }}>✨</Text>}
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={[styles.giftRowName, { color: colors.text }]}>{v.fairy.name}</Text>
-                        <Text style={[styles.giftRowSub, { color: colors.icon }]}>
+                        <Text style={[styles.giftRowName, { color: '#2A3A1E' }]}>{v.fairy.name}</Text>
+                        <Text style={[styles.giftRowSub, { color: 'rgba(0,0,0,0.45)' }]}>
                           {v.material ? v.material.name : 'No drop'} · {formatArrivalDate(v.arrived_at)}
                         </Text>
                       </View>
-                      <Text style={{ fontSize: 16 }}>✓</Text>
+                      <Text style={{ fontSize: 16, color: 'rgba(0,0,0,0.45)' }}>✓</Text>
                     </View>
                   ))}
                 </>
               )}
 
               {mailboxVisits.length === 0 && collectedHistory.length === 0 && (
-                <Text style={[styles.giftEmptyText, { color: colors.icon }]}>
+                <Text style={[styles.giftEmptyText, { color: 'rgba(0,0,0,0.45)' }]}>
                   No gifts yet. Summon a fairy to get started!
                 </Text>
               )}

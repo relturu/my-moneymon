@@ -122,11 +122,11 @@ export default function FairyLogScreen() {
   function renderFairyCard(fairy: FairyEntry | undefined) {
     if (!fairy) {
       return (
-        <View style={[styles.card, { backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.10)', opacity: 0.65 }]}>
-          <View style={[styles.portrait, { backgroundColor: 'rgba(255,255,255,0.12)' }]}>
+        <View style={[styles.card, { backgroundColor: 'rgba(0,0,0,0.03)', borderColor: 'rgba(0,0,0,0.06)', opacity: 0.65 }]}>
+          <View style={[styles.portrait, { backgroundColor: 'rgba(0,0,0,0.06)' }]}>
             <Image source={LOCKED_FAIRY} style={{ width: '85%', height: '85%' }} resizeMode="contain" />
           </View>
-          <Text style={[styles.fairyName, { color: 'rgba(255,255,255,0.4)' }]}>???</Text>
+          <Text style={[styles.fairyName, { color: 'rgba(0,0,0,0.3)' }]}>???</Text>
         </View>
       );
     }
@@ -135,8 +135,8 @@ export default function FairyLogScreen() {
         style={[
           styles.card,
           fairy.discovered
-            ? { backgroundColor: 'rgba(255,255,255,0.10)', borderColor: 'rgba(255,255,255,0.15)' }
-            : { backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.10)', opacity: 0.65 },
+            ? { backgroundColor: 'rgba(0,0,0,0.05)', borderColor: 'rgba(0,0,0,0.08)' }
+            : { backgroundColor: 'rgba(0,0,0,0.03)', borderColor: 'rgba(0,0,0,0.06)', opacity: 0.65 },
         ]}
         onPress={() => {
           if (fairy.discovered) {
@@ -147,7 +147,7 @@ export default function FairyLogScreen() {
 
         <View style={[
           styles.portrait,
-          { backgroundColor: fairy.discovered ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.12)' },
+          { backgroundColor: fairy.discovered ? 'rgba(0,0,0,0.04)' : 'rgba(0,0,0,0.06)' },
         ]}>
           {fairy.discovered && fairy.portrait_url && FAIRY_PORTRAITS[fairy.portrait_url]
             ? <Image source={FAIRY_PORTRAITS[fairy.portrait_url]} style={{ width: '85%', height: '85%' }} resizeMode="contain" />
@@ -157,7 +157,7 @@ export default function FairyLogScreen() {
         </View>
 
         <Text
-          style={[styles.fairyName, { color: fairy.discovered ? '#fff' : 'rgba(255,255,255,0.4)' }]}
+          style={[styles.fairyName, { color: fairy.discovered ? '#425F4F' : 'rgba(0,0,0,0.3)' }]}
           numberOfLines={1}>
           {fairy.discovered ? fairy.name : '???'}
         </Text>
@@ -188,7 +188,7 @@ export default function FairyLogScreen() {
           {/* Panel header */}
           <View style={styles.panelHeader}>
             <TouchableOpacity style={styles.backBtn} onPress={() => router.navigate('/(tabs)/' as any)}>
-              <IconSymbol size={20} name="arrow.left" color="#fff" />
+              <IconSymbol size={20} name="arrow.left" color="#2A3A1E" />
             </TouchableOpacity>
             <Text style={styles.panelTitle}>Fairy Log</Text>
           </View>
@@ -225,7 +225,7 @@ export default function FairyLogScreen() {
             <View style={styles.dots}>
               {pages.map((_, i) => (
                 <TouchableOpacity key={i} onPress={() => goToPage(i)}>
-                  <View style={[styles.dot, { backgroundColor: i === currentPage ? '#fff' : 'rgba(255,255,255,0.3)' }]} />
+                  <View style={[styles.dot, { backgroundColor: i === currentPage ? '#425F4F' : 'rgba(0,0,0,0.2)' }]} />
                 </TouchableOpacity>
               ))}
             </View>
@@ -262,14 +262,14 @@ const styles = StyleSheet.create({
 
   panel: {
     flex: 1,
-    backgroundColor: '#2A3E34',
+    backgroundColor: '#E8EDE4',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     paddingTop: 12,
   },
   handle: {
     width: 40, height: 4, borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: 'rgba(0,0,0,0.12)',
     alignSelf: 'center',
     marginBottom: 14,
   },
@@ -283,14 +283,14 @@ const styles = StyleSheet.create({
   backBtn: {
     width: 40, height: 40,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(0,0,0,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   panelTitle: {
     fontSize: 28,
     fontFamily: 'Kanchenjunga_700Bold',
-    color: '#fff',
+    color: '#425F4F',
   },
 
   pager: { flex: 1 },

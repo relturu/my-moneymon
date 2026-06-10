@@ -150,7 +150,7 @@ export default function QuestsScreen() {
           {/* Panel header */}
           <View style={styles.panelHeader}>
             <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-              <IconSymbol size={20} name="arrow.left" color="#fff" />
+              <IconSymbol size={20} name="arrow.left" color="#2A3A1E" />
             </TouchableOpacity>
             <Text style={styles.panelTitle}>Daily Goals</Text>
           </View>
@@ -162,7 +162,7 @@ export default function QuestsScreen() {
                 key={p}
                 style={[styles.toggleBtn, period === p && styles.toggleBtnActive]}
                 onPress={() => setPeriod(p)}>
-                <Text style={[styles.toggleText, { color: period === p ? '#fff' : 'rgba(255,255,255,0.5)' }]}>
+                <Text style={[styles.toggleText, { color: period === p ? '#425F4F' : 'rgba(0,0,0,0.4)' }]}>
                   {p.charAt(0).toUpperCase() + p.slice(1)}
                 </Text>
               </TouchableOpacity>
@@ -263,14 +263,14 @@ const styles = StyleSheet.create({
 
   panel: {
     flex: 1,
-    backgroundColor: '#2A3E34',
+    backgroundColor: '#E8EDE4',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     paddingTop: 12,
   },
   handle: {
     width: 40, height: 4, borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: 'rgba(0,0,0,0.12)',
     alignSelf: 'center',
     marginBottom: 14,
   },
@@ -284,21 +284,21 @@ const styles = StyleSheet.create({
   backBtn: {
     width: 40, height: 40,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(0,0,0,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   panelTitle: {
     fontSize: 28,
     fontFamily: 'Kanchenjunga_700Bold',
-    color: '#fff',
+    color: '#425F4F',
   },
 
   toggle: {
     flexDirection: 'row',
     marginHorizontal: 20,
     marginBottom: 16,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(0,0,0,0.06)',
     borderRadius: 12,
     padding: 3,
     gap: 3,
@@ -309,46 +309,46 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
   },
-  toggleBtnActive: { backgroundColor: 'rgba(255,255,255,0.18)' },
+  toggleBtnActive: { backgroundColor: 'rgba(0,0,0,0.10)' },
   toggleText: { fontSize: 14, fontFamily: 'Kanchenjunga_600SemiBold' },
 
   list: { paddingHorizontal: 20, paddingBottom: 32, paddingTop: 4 },
   listEmpty: { flex: 1 },
-  divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginVertical: 12 },
+  divider: { height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginVertical: 12 },
 
   card: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 14,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: 'rgba(0,0,0,0.03)',
     borderRadius: 16,
     padding: 14,
   },
-  cardDone: { backgroundColor: 'rgba(16,185,129,0.12)' },
+  cardDone: { backgroundColor: 'rgba(66,95,79,0.10)' },
 
   rewardChip: {
     width: 54, minHeight: 54,
     borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(0,0,0,0.05)',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 3,
     padding: 6,
     flexShrink: 0,
   },
-  rewardChipDone: { backgroundColor: 'rgba(16,185,129,0.2)' },
+  rewardChipDone: { backgroundColor: 'rgba(66,95,79,0.15)' },
   rewardText: { fontSize: 14, fontFamily: 'Kanchenjunga_700Bold', color: '#FCD34D' },
-  checkmark: { fontSize: 22, color: '#10B981' },
+  checkmark: { fontSize: 22, color: '#425F4F' },
 
   questInfo: { flex: 1, gap: 6 },
-  questTitle: { fontSize: 16, fontFamily: 'Kanchenjunga_600SemiBold', color: '#fff', lineHeight: 22 },
-  questTitleDone: { color: 'rgba(255,255,255,0.45)', textDecorationLine: 'line-through' },
-  questDesc: { fontSize: 13, color: 'rgba(255,255,255,0.55)', lineHeight: 18 },
-  completedLabel: { fontSize: 13, fontFamily: 'Kanchenjunga_600SemiBold', color: '#10B981' },
+  questTitle: { fontSize: 16, fontFamily: 'Kanchenjunga_600SemiBold', color: '#425F4F', lineHeight: 22 },
+  questTitleDone: { color: 'rgba(0,0,0,0.35)', textDecorationLine: 'line-through' },
+  questDesc: { fontSize: 13, color: 'rgba(0,0,0,0.5)', lineHeight: 18 },
+  completedLabel: { fontSize: 13, fontFamily: 'Kanchenjunga_600SemiBold', color: '#425F4F' },
 
   completeBtn: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(124,58,237,0.7)',
+    backgroundColor: 'rgba(66,95,79,0.75)',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -358,15 +358,15 @@ const styles = StyleSheet.create({
   acceptBtn: {
     alignSelf: 'flex-start',
     borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: 'rgba(0,0,0,0.2)',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 8,
   },
-  acceptBtnText: { color: 'rgba(255,255,255,0.8)', fontSize: 13, fontFamily: 'Kanchenjunga_600SemiBold' },
+  acceptBtnText: { color: '#425F4F', fontSize: 13, fontFamily: 'Kanchenjunga_600SemiBold' },
 
   emptyContent: { alignItems: 'center', gap: 12, paddingTop: 60 },
   emptyEmoji: { fontSize: 48 },
-  emptyTitle: { fontSize: 18, fontFamily: 'Kanchenjunga_600SemiBold', color: '#fff' },
-  emptyHint: { fontSize: 14, textAlign: 'center', paddingHorizontal: 32, color: 'rgba(255,255,255,0.6)' },
+  emptyTitle: { fontSize: 18, fontFamily: 'Kanchenjunga_600SemiBold', color: '#425F4F' },
+  emptyHint: { fontSize: 14, textAlign: 'center', paddingHorizontal: 32, color: 'rgba(0,0,0,0.45)' },
 });
