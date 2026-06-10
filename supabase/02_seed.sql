@@ -62,29 +62,29 @@ INSERT INTO quest_definitions (title, description, quest_type, coin_reward, requ
   -- Daily quests
   ('Log a Transaction',
    'Record any purchase or income today.',
-   'daily', 10, 'log_transactions', '{"count": 1}', true),
+   'daily', 1, 'log_transactions', '{"count": 1}', true),
 
   ('Log 3 Transactions',
    'Record 3 transactions today to keep your budget on track.',
-   'daily', 25, 'log_transactions', '{"count": 3}', true),
+   'daily', 2, 'log_transactions', '{"count": 3}', true),
 
   ('Log Your Income',
    'Record any income source today.',
-   'daily', 15, 'log_income', '{"count": 1}', true),
+   'daily', 1, 'log_income', '{"count": 1}', true),
 
   -- Weekly quests
   ('Budget Watcher',
    'Stay under budget in any one category this week.',
-   'weekly', 50, 'stay_under_budget', '{"categories": 1}', true),
+   'weekly', 2, 'stay_under_budget', '{"categories": 1}', true),
 
   ('Transaction Tracker',
    'Log at least 10 transactions this week.',
-   'weekly', 75, 'log_transactions', '{"count": 10}', true),
+   'weekly', 3, 'log_transactions', '{"count": 10}', true),
 
   ('Income Logger',
    'Record 3 income transactions this week.',
-   'weekly', 60, 'log_income', '{"count": 3}', true),
+   'weekly', 2, 'log_income', '{"count": 3}', true),
 
   ('Savings Champion',
    'Stay under budget in 3 or more categories this week.',
-   'weekly', 100, 'stay_under_budget', '{"categories": 3}', true);
+   'weekly', 3, 'stay_under_budget', '{"categories": 3}', true);

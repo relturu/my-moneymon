@@ -119,7 +119,14 @@ export default function FairyLogScreen() {
 
   function renderFairyCard(fairy: FairyEntry | undefined) {
     if (!fairy) {
-      return <View style={styles.card} />;
+      return (
+        <View style={[styles.card, { backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.10)', opacity: 0.65 }]}>
+          <View style={[styles.portrait, { backgroundColor: 'rgba(255,255,255,0.12)' }]}>
+            <Text style={styles.portraitEmoji}>🥚</Text>
+          </View>
+          <Text style={[styles.fairyName, { color: 'rgba(255,255,255,0.4)' }]}>???</Text>
+        </View>
+      );
     }
     return (
       <TouchableOpacity

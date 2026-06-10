@@ -495,8 +495,8 @@ export type Rarity = 'common' | 'rare' | 'mythical' | 'legendary';
 
 // ── Coin cost by rarity (derived in code, not stored per fairy) ────────────────
 export const COIN_COST_BY_RARITY: Record<Rarity, number> = {
-  common: 10,
-  rare: 25,
-  mythical: 50,
-  legendary: 100,
+  common: 1,
+  rare: 2,
+  mythical: 4,
+  legendary: 8,
 };

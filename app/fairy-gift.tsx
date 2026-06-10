@@ -232,7 +232,7 @@ export default function FairyGiftScreen() {
               <Text style={[styles.giftSub, { color: colors.icon }]}>
                 {isTestVisit
                   ? `${materialName} (test — no XP)`
-                  : `${materialName}${xpGained > 0 ? ` · +${xpGained} XP` : ''}`}
+                  : `${materialName}${xpGained > 0 ? ` · ${xpGained}XP` : ''}`}
               </Text>
             ) : null}
             <Text style={[styles.hangingNote, { color: colors.icon }]}>

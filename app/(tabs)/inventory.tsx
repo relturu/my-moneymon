@@ -117,7 +117,7 @@ export default function InventoryScreen() {
               const xpMin = item.material?.xp_min;
               const xpMax = item.material?.xp_max;
               const expLabel = xpMin != null
-                ? `EXP +${xpMin}${xpMax != null && xpMax !== xpMin ? `–${xpMax}` : ''}`
+                ? `${xpMin}${xpMax != null && xpMax !== xpMin ? `–${xpMax}` : ''}XP`
                 : null;
 
               return (
