@@ -1,21 +1,22 @@
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const FAIRY_PORTRAITS: Record<string, any> = {
   felicity: require('@/assets/images/felicity.png'),
   mallow:   require('@/assets/images/mallow.png'),
   pepper:   require('@/assets/images/pepper.png'),
   webster:  require('@/assets/images/webster.png'),
+  pearl:  require('@/assets/images/pearl.png'),
 };
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useLocalSearchParams } from 'expo-router';
 
 import CoinSvg from '@/assets/images/coin.svg';
-import { supabase } from '@/lib/supabase';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import type { FairyDefinition, UserFairyCollection, Material } from '@/types/database';
+import { supabase } from '@/lib/supabase';
+import type { FairyDefinition, Material, UserFairyCollection } from '@/types/database';
 
 type FairyDetail = FairyDefinition & {
   collection: UserFairyCollection | null;
