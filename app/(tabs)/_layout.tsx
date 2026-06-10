@@ -5,6 +5,10 @@ import { View } from 'react-native';
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
+import ProfileSvg from '@/assets/images/profile.svg';
+import FinanceSvg from '@/assets/images/finance.svg';
+import InventorySvg from '@/assets/images/inventory.svg';
+import FairyLogSvg from '@/assets/images/fairyLog.svg';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { supabase } from '@/lib/supabase';
 import { useNotifs } from '@/lib/notifications';
@@ -69,20 +73,26 @@ export default function TabLayout() {
           tabBarButton: HapticTab,
         }}>
         <Tabs.Screen
-          name="profile"
+          name="inventory"
           options={{
-            title: 'Me',
-            tabBarIcon: ({ color }) => (
-              <IconSymbol size={26} name="person.fill" color={color} />
+            title: 'Inventory',
+            tabBarIcon: () => (
+              <View style={{ position: 'relative' }}>
+                <InventorySvg width={26} height={26} />
+                {inventory && <View style={dot(colors.background)} />}
+              </View>
             ),
           }}
         />
         <Tabs.Screen
-          name="finance"
+          name="fairy-log"
           options={{
-            title: 'Finance',
-            tabBarIcon: ({ color }) => (
-              <IconSymbol size={26} name="chart.bar.fill" color={color} />
+            title: 'Fairy Log',
+            tabBarIcon: () => (
+              <View style={{ position: 'relative' }}>
+                <FairyLogSvg width={26} height={26} />
+                {fairyLog && <View style={dot(colors.background)} />}
+              </View>
             ),
           }}
         />
@@ -99,26 +109,20 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="inventory"
+          name="finance"
           options={{
-            title: 'Inventory',
-            tabBarIcon: ({ color }) => (
-              <View style={{ position: 'relative' }}>
-                <IconSymbol size={26} name="bag.fill" color={color} />
-                {inventory && <View style={dot(colors.background)} />}
-              </View>
+            title: 'Finance',
+            tabBarIcon: () => (
+              <FinanceSvg width={26} height={26} />
             ),
           }}
         />
         <Tabs.Screen
-          name="fairy-log"
+          name="profile"
           options={{
-            title: 'Fairy Log',
-            tabBarIcon: ({ color }) => (
-              <View style={{ position: 'relative' }}>
-                <IconSymbol size={26} name="book.closed.fill" color={color} />
-                {fairyLog && <View style={dot(colors.background)} />}
-              </View>
+            title: 'Me',
+            tabBarIcon: () => (
+              <ProfileSvg width={26} height={26} />
             ),
           }}
         />
