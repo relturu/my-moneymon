@@ -13,12 +13,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
 import CoinSvg from '@/assets/images/coin.svg';
 import GiftSvg from '@/assets/images/gift.svg';
 import QuestSvg from '@/assets/images/quest.svg';
+import InventorySvg from '@/assets/images/inventory.svg';
+import FairyLogSvg from '@/assets/images/fairyLog.svg';
 import { supabase } from '@/lib/supabase';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -82,6 +85,7 @@ function formatDuration(ms: number): string {
 export default function FountainScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
+  const tabBarHeight = useBottomTabBarHeight();
 
   const [user, setUser] = useState<User | null>(null);
   const [currentLevel, setCurrentLevel] = useState<FountainUpgrade | null>(null);
@@ -92,7 +96,7 @@ export default function FountainScreen() {
   const [giftSheetOpen, setGiftSheetOpen] = useState(false);
   const [collectedHistory, setCollectedHistory] = useState<CollectedVisit[]>([]);
   const [tick, setTick] = useState(0); // forces countdown re-render
-  const { setFountain } = useNotifs();
+  const { setFountain, inventory, fairyLog } = useNotifs();
 
   const bottomTranslateY = useSharedValue(0);
 
@@ -389,7 +393,7 @@ export default function FountainScreen() {
       resizeMode="cover">
       <SafeAreaView style={styles.safeArea}>
 
-        {/* Top row: coin+quests left, mailbox right */}
+        {/* Top row: coin+quests left, inventory+fairy-log right */}
         <View style={styles.topRow}>
           {/* Left: coin badge + quests button + gift button stacked */}
           <View style={styles.topLeft}>
@@ -411,6 +415,21 @@ export default function FountainScreen() {
               )}
             </TouchableOpacity>
           </View>
+          {/* Right: inventory + fairy log buttons */}
+          <View style={styles.topRight}>
+            <TouchableOpacity
+              style={styles.topIconBtn}
+              onPress={() => router.push('/(tabs)/inventory' as any)}>
+              <InventorySvg width={36} height={36} />
+              {inventory && <View style={styles.mailboxDot} />}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.topIconBtn}
+              onPress={() => router.push('/(tabs)/fairy-log' as any)}>
+              <FairyLogSvg width={36} height={36} />
+              {fairyLog && <View style={styles.mailboxDot} />}
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Middle spacer — fairy bubble if visiting */}
@@ -429,7 +448,7 @@ export default function FountainScreen() {
         </View>
 
         {/* Bottom info overlay — all white text */}
-        <Animated.View style={[styles.bottomOverlay, bottomAnimStyle]}>
+        <Animated.View style={[styles.bottomOverlay, bottomAnimStyle, { paddingBottom: Math.max(16, tabBarHeight) }]}>
 
           <Text style={styles.fountainTitle}>Wish Fountain</Text>
           <Text style={styles.levelLabel}>Level {fountainLevel}</Text>
@@ -666,6 +685,7 @@ const styles = StyleSheet.create({
     paddingTop: 4,
   },
   topLeft: { alignItems: 'flex-start', gap: 8 },
+  topRight: { alignItems: 'flex-end', gap: 8 },
   coinBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -710,7 +730,6 @@ const styles = StyleSheet.create({
   bottomOverlay: {
     paddingHorizontal: 20,
     paddingTop: 8,
-    paddingBottom: 16,
     gap: 6,
   },
   fountainTitle: { fontSize: 22, lineHeight: 38, fontFamily: 'Kanchenjunga_700Bold', color: '#fff', textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
@@ -729,7 +748,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     overflow: 'visible',
   },
-  primaryButtonText: { color: '#fff', fontSize: 17, fontFamily: 'Kanchenjunga_700Bold', paddingRight: 4 },
+  primaryButtonText: { color: '#fff', fontSize: 17, fontFamily: 'Kanchenjunga_700Bold', paddingRight: 4, lineHeight: 20, includeFontPadding: false },
   infoText: { fontSize: 13, color: 'rgba(255,255,255,0.85)', textAlign: 'center' },
   timerText: { fontSize: 22, fontFamily: 'Kanchenjunga_700Bold', color: '#fff', textAlign: 'center' },
   devTestText: { fontSize: 12, color: 'rgba(255,255,255,0.55)', textAlign: 'center', textDecorationLine: 'underline' },
