@@ -28,7 +28,7 @@ type BudgetWithCategory = Budget & { category: Category | null };
 type BudgetExpanded = BudgetWithCategory & { spent: number; transactions: Transaction[] };
 type SubTab = 'overview' | 'transactions' | 'budgets';
 
-const CHART_COLORS = ['#69835C', '#A78BFA', '#F59E0B', '#10B981', '#3B82F6', '#EC4899', '#B7C8BF', '#F97316'];
+const CHART_COLORS = ['#69835C', '#5B9CDC', '#F59E0B', '#10B981', '#3B82F6', '#EC4899', '#B7C8BF', '#F97316'];
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -883,7 +883,7 @@ function BudgetCard({ budget, isExpanded, onToggle, onEdit, onDelete, colors }: 
           <View style={[bcStyles.progressTrack, { backgroundColor: colors.border }]}>
             <View style={[bcStyles.progressFill, {
               width: `${Math.min(progress, 1) * 100}%` as any,
-              backgroundColor: isOver ? colors.expense : colors.tint,
+              backgroundColor: isOver ? colors.expense : '#9FC044',
             }]} />
           </View>
           {isOver && (
@@ -1007,7 +1007,7 @@ function OverallBudgetHeroCard({ budget, onEdit, onDelete, colors }: {
   const pct = limit > 0 ? budget.spent / limit : 0;
   const isOver = budget.spent > limit;
   const isAmber = !isOver && pct >= 0.8;
-  const barColor = isOver ? colors.expense : isAmber ? '#F59E0B' : '#69835C';
+  const barColor = isOver ? colors.expense : isAmber ? '#F59E0B' : '#9FC044';
   const dateRange = formatDateRange(budget.start_date, budget.end_date);
 
   return (
@@ -1049,7 +1049,7 @@ function OverallBudgetHeroCard({ budget, onEdit, onDelete, colors }: {
 }
 
 const heroStyles = StyleSheet.create({
-  card: { backgroundColor: '#425F4D', borderRadius: 16, padding: 18, marginBottom: 10 },
+  card: { backgroundColor: '#425F4F', borderRadius: 16, padding: 18, marginBottom: 10 },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   cardLabel: { fontSize: 10, fontWeight: '700', color: 'rgba(255,255,255,0.6)', letterSpacing: 1.2 },
   iconRow: { flexDirection: 'row', gap: 8 },
@@ -1090,7 +1090,7 @@ function SpendingBreakdown({ enrichedBudgets, otherSpent, overallEnriched, color
         const limit = Number(overallEnriched.amount_limit);
         const pct = limit > 0 ? overallEnriched.spent / limit : 0;
         const isOver = overallEnriched.spent > limit;
-        const barColor = isOver ? colors.expense : pct >= 0.8 ? '#F59E0B' : '#69835C';
+        const barColor = isOver ? colors.expense : pct >= 0.8 ? '#F59E0B' : '#9FC044';
         return (
           <View style={sbStyles.overallBar}>
             <View style={sbStyles.overallBarHeader}>
@@ -1138,7 +1138,7 @@ function SpendingBreakdown({ enrichedBudgets, otherSpent, overallEnriched, color
 const sbStyles = StyleSheet.create({
   container: { gap: 0 },
   overallBar: {
-    backgroundColor: '#425F4D',
+    backgroundColor: '#425F4F',
     borderRadius: 12,
     padding: 14,
     marginBottom: 10,

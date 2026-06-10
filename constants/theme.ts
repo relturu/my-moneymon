@@ -3,31 +3,31 @@ import { Platform } from 'react-native';
 export const Colors = {
   light: {
     text: '#1C1917',
-    background: '#FFFBF5',
-    tint: '#7C3AED',
+    background: '#F1F3EA',
+    tint: '#425F4F',
     icon: '#78716C',
     tabIconDefault: '#A8A29E',
-    tabIconSelected: '#7C3AED',
+    tabIconSelected: '#425F4F',
     // app-specific
     coin: '#F59E0B',
     income: '#10B981',
     expense: '#EF4444',
     card: '#FFFFFF',
-    border: '#E7E5E4',
+    border: '#D6DDD0',
   },
   dark: {
     text: '#F5F5F4',
-    background: '#0F0A1E',
-    tint: '#A78BFA',
+    background: '#0D1610',
+    tint: '#9FC044',
     icon: '#A8A29E',
     tabIconDefault: '#6B7280',
-    tabIconSelected: '#A78BFA',
+    tabIconSelected: '#9FC044',
     // app-specific
     coin: '#FCD34D',
     income: '#34D399',
     expense: '#F87171',
-    card: '#1C1427',
-    border: '#292142',
+    card: '#1A2420',
+    border: '#2A3D35',
   },
 };
 
